@@ -55,7 +55,7 @@
         <p><strong>顯示名稱:</strong> <span id="display-name"></span></p>
         <p><strong>使用者 ID:</strong> <span id="user-id"></span></p>
         <p><strong>狀態消息:</strong> <span id="status-message"></span></p>
-        <p><strong>電子郵件:</strong> <span id="email"></span></p>
+        
     </div>
 
     <script>
@@ -88,13 +88,7 @@
                 document.getElementById('profile-picture').src = profile.pictureUrl || 'https://via.placeholder.com/100'; // 如果沒有頭像則顯示預設圖片
                 document.getElementById('status-message').textContent = profile.statusMessage || '無狀態消息';
 
-                // 取得電子郵件 (需要 'email' scope)
-                if (liff.get, idToken()) { // 檢查是否已取得 ID Token，ID Token 包含電子郵件資訊
-                    const decodedIdToken = liff.getDecodedIDToken();
-                    document.getElementById('email').textContent = decodedIdToken.email || '無電子郵件 (需要啟用 email scope)';
-                } else {
-                    document.getElementById('email').textContent = '無電子郵件 (需要啟用 email scope)';
-                }
+                
 
                 document.getElementById('profile-container').style.display = 'block';
                 document.getElementById('status').style.display = 'none'; // 隱藏狀態訊息
