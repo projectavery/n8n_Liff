@@ -44,11 +44,9 @@
         <h1>簡易表單</h1>
 
         <div id="liff-info">
-            <h2>LIFF 用戶資訊</h2>
-            <p><strong>用戶 ID:</strong> <span id="liff-userId">載入中...</span></p>
-            <p><strong>顯示名稱:</strong> <span id="liff-displayName">載入中...</span></p>
+            <h2>訂購人LINE資訊</h2>
             <p><strong>頭像:</strong> <span id="liff-pictureUrl-container">載入中...</span></p>
-            
+            <p><strong>顯示名稱:</strong> <span id="liff-displayName">載入中...</span></p>
         </div>
         
         <form id="myForm">
@@ -201,7 +199,6 @@
                     console.log("LIFF Profile:", liffUserData); // 在控制台查看用戶資料
 
                     // 將用戶資訊顯示在網頁上
-                    document.getElementById('liff-userId').textContent = liffUserData.userId;
                     document.getElementById('liff-displayName').textContent = liffUserData.displayName;
                     
                     const pictureUrlContainer = document.getElementById('liff-pictureUrl-container');
