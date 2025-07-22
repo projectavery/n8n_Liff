@@ -93,10 +93,10 @@
         // 全局變數用於儲存 LIFF 用戶資料
         let liffUserData = null;
 
-        //document.addEventListener('DOMContentLoaded', () => {
-            //fetchDropdownOptions('選項清單', 'dropdown1'); // 從 '選項清單' 工作表填充第一個下拉選單
-            //fetchDropdownOptions('選項清單2', 'dropdown2'); // 從 '選項清單2' 工作表填充第二個下拉選單
-            //fetchDropdownOptions('選項清單3', 'dropdown3'); // 從 '選項清單3' 工作表填充第三個下拉選單
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchDropdownOptions('選項清單', 'dropdown1'); // 從 '選項清單' 工作表填充第一個下拉選單
+            fetchDropdownOptions('選項清單2', 'dropdown2'); // 從 '選項清單2' 工作表填充第二個下拉選單
+            fetchDropdownOptions('選項清單3', 'dropdown3'); // 從 '選項清單3' 工作表填充第三個下拉選單
 
             const myForm = document.getElementById('myForm');
             const messageDiv = document.getElementById('message');
