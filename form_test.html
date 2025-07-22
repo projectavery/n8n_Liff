@@ -16,14 +16,15 @@
         .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         
-        /* LIFF 資訊顯示樣式 */
-        #liff-info {
-            margin-bottom: 20px;
+        /* 新增的區塊樣式 */
+        .section-box {
+            border: 1px solid #cce5ff; /* 淺藍色邊框 */
+            background-color: #e0f2ff; /* 淺藍色底色 */
             padding: 15px;
-            border: 1px dashed #ccc;
-            border-radius: 5px;
-            background-color: #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 20px; /* 區塊間距 */
         }
+
         #liff-info h2 {
             margin-top: 0;
             color: #333;
@@ -43,31 +44,35 @@
     <div class="container">
         <h1></h1>
 
-        <div id="liff-info">
+                <div id="liff-info" class="section-box">
             <h2>訂購人LINE資訊</h2>
             <p><strong>頭像:</strong> <span id="liff-pictureUrl-container">載入中...</span></p>
             <p><strong>顯示名稱:</strong> <span id="liff-displayName">載入中...</span></p>
         </div>
         
-        <form id="myForm">
-            <label for="textField1">飲料品項:</label>
-            <input type="text" id="textField1" name="textField1" required>
+                <div class="section-box">
+            <h2>訂購內容</h2>
+            <form id="myForm">
+                <label for="textField1">飲料品項:</label>
+                <input type="text" id="textField1" name="textField1" required>
 
-            <label for="dropdown2">甜度:</label>
-            <select id="dropdown2" name="dropdown2" required>
-                <option value="">載入中...</option>
-            </select>
+                <label for="dropdown2">甜度:</label>
+                <select id="dropdown2" name="dropdown2" required>
+                    <option value="">載入中...</option>
+                </select>
 
-            <label for="dropdown3">冰塊:</label>
-            <select id="dropdown3" name="dropdown3" required>
-                <option value="">載入中...</option>
-            </select>
-            
-            <label for="textField2">數量:</label>
-            <input type="text" id="textField2" name="textField2" required>
-            
-            <button type="submit">送出表單</button>
-        </form>
+                <label for="dropdown3">冰塊:</label>
+                <select id="dropdown3" name="dropdown3" required>
+                    <option value="">載入中...</option>
+                </select>
+                
+                <label for="textField2">數量:</label>
+                <input type="text" id="textField2" name="textField2" required>
+                
+                <button type="submit">送出表單</button>
+            </form>
+        </div>
+
         <div id="message" class="message" style="display: none;"></div>
     </div>
 
@@ -81,13 +86,12 @@
         // 例如: 'https://webhook.site/your-unique-id' 或 'https://your.n8n.domain/webhook/your-path'
 
         // *** 請將這裡替換成您的 LIFF ID ***
-        const LIFF_ID = "2007786741-nWNbGDkL"; 
+        const LIFF_ID = "2007786741-6QMmP4Kg"; 
 
         // 全局變數用於儲存 LIFF 用戶資料
         let liffUserData = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // fetchDropdownOptions('選項清單', 'dropdown1'); // 從 '選項清單' 工作表填充第一個下拉選單 (註解掉，因為 HTML 中只有 dropdown2 和 dropdown3)
             fetchDropdownOptions('選項清單2', 'dropdown2'); // 從 '選項清單2' 工作表填充第二個下拉選單
             fetchDropdownOptions('選項清單3', 'dropdown3'); // 從 '選項清單3' 工作表填充第三個下拉選單
 
@@ -103,8 +107,8 @@
                 const currentMinute = now.getMinutes();
 
                 // 將 10:30 AM 轉換為小時和分鐘
-                const cutoffHour = 17;
-                const cutoffMinute = 00;
+                const cutoffHour = 10;
+                const cutoffMinute = 30;
 
                 if (currentHour > cutoffHour || (currentHour === cutoffHour && currentMinute > cutoffMinute)) {
                     showMessage('已超過訂購時間 (10:30 AM)，無法送出表單。', 'error');
@@ -124,12 +128,8 @@
                     data.liffUserId = liffUserData.userId;
                     data.liffDisplayName = liffUserData.displayName;
                     data.liffPictureUrl = liffUserData.pictureUrl;
-                    // data.liffStatusMessage = liffUserData.statusMessage; // 狀態訊息不是每個 LIFF 帳戶都有，可以選擇性包含
                 } else {
                     console.warn("LIFF 用戶資料未載入，表單將不包含 LIFF 資訊。");
-                    // 如果 LIFF 資訊是必要的，可以考慮在這裡阻止提交
-                    // showMessage('請等待 LIFF 資訊載入後再提交表單。', 'error');
-                    // return;
                 }
 
                 try {
@@ -144,19 +144,15 @@
                     if (response.ok) {
                         showMessage('表單已成功送出！', 'success');
                         myForm.reset(); // 清空表單
-                        // 重新載入下拉選單選項，以防萬一
-                        // fetchDropdownOptions('選項清單', 'dropdown1'); // (註解掉)
                         fetchDropdownOptions('選項清單2', 'dropdown2');
                         fetchDropdownOptions('選項清單3', 'dropdown3');
 
                         // --- 2. 送出表單後關閉 LIFF 視窗 ---
-                        if (liff.isInClient()) { // 判斷是否在 LINE 應用程式內
+                        if (liff.isInClient()) {
                             setTimeout(() => {
-                                liff.closeWindow(); // 關閉 LIFF 視窗
-                            }, 2000); // 2秒後關閉，讓使用者看到成功訊息
+                                liff.closeWindow();
+                            }, 2000);
                         }
-                        // --- 關閉 LIFF 視窗結束 ---
-
                     } else {
                         const errorText = await response.text();
                         showMessage(`送出失敗: ${response.status} - ${errorText}`, 'error');
@@ -169,14 +165,14 @@
 
             async function fetchDropdownOptions(sheetName, dropdownId) {
                 const dropdown = document.getElementById(dropdownId);
-                dropdown.innerHTML = '<option value="">載入中...</option>'; // 顯示載入狀態
-                dropdown.disabled = true; // 載入時禁用
+                dropdown.innerHTML = '<option value="">載入中...</option>';
+                dropdown.disabled = true;
 
                 try {
                     const response = await fetch(`${APPS_SCRIPT_URL}?sheetName=${sheetName}`);
                     const options = await response.json();
 
-                    dropdown.innerHTML = '<option value="">請選擇</option>'; // 重置選項
+                    dropdown.innerHTML = '<option value="">請選擇</option>';
                     if (options.error) {
                         dropdown.innerHTML = `<option value="">錯誤: ${options.error}</option>`;
                         console.error(`載入 ${sheetName} 選項失敗: ${options.error}`);
@@ -192,7 +188,7 @@
                     dropdown.innerHTML = `<option value="">載入失敗</option>`;
                     console.error(`載入 ${sheetName} 選項時發生錯誤:`, error);
                 } finally {
-                    dropdown.disabled = false; // 載入完成後啟用
+                    dropdown.disabled = false;
                 }
             }
 
@@ -202,7 +198,7 @@
                 messageDiv.style.display = 'block';
                 setTimeout(() => {
                     messageDiv.style.display = 'none';
-                }, 5000); // 5秒後隱藏訊息
+                }, 5000);
             }
 
             // --- LIFF 初始化和用戶資料獲取 ---
