@@ -81,7 +81,7 @@
         // 例如: 'https://webhook.site/your-unique-id' 或 'https://your.n8n.domain/webhook/your-path'
 
         // *** 請將這裡替換成您的 LIFF ID ***
-        const LIFF_ID = "2007786741-6QMmP4Kg"; 
+        const LIFF_ID = "2007786741-nWNbGDkL"; 
 
         // 全局變數用於儲存 LIFF 用戶資料
         let liffUserData = null;
@@ -97,6 +97,21 @@
             myForm.addEventListener('submit', async (event) => {
                 event.preventDefault(); // 防止表單預設提交行為
 
+                // --- 1. 送出表單前判斷時間 ---
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+
+                // 將 10:30 AM 轉換為小時和分鐘
+                const cutoffHour = 17;
+                const cutoffMinute = 00;
+
+                if (currentHour > cutoffHour || (currentHour === cutoffHour && currentMinute > cutoffMinute)) {
+                    showMessage('已超過訂購時間 (10:30 AM)，無法送出表單。', 'error');
+                    return; // 阻止表單提交
+                }
+                // --- 時間判斷結束 ---
+                
                 const formData = new FormData(myForm);
                 const data = {};
                 for (const [key, value] of formData.entries()) {
@@ -132,6 +147,15 @@
                         fetchDropdownOptions('選項清單', 'dropdown1');
                         fetchDropdownOptions('選項清單2', 'dropdown2');
                         fetchDropdownOptions('選項清單3', 'dropdown3');
+
+                        // --- 2. 送出表單後關閉 LIFF 視窗 ---
+                        if (liff.isInClient()) { // 判斷是否在 LINE 應用程式內
+                            setTimeout(() => {
+                                liff.closeWindow(); // 關閉 LIFF 視窗
+                            }, 2000); // 2秒後關閉，讓使用者看到成功訊息
+                        }
+                        // --- 關閉 LIFF 視窗結束 ---
+                        
                     } else {
                         const errorText = await response.text();
                         showMessage(`送出失敗: ${response.status} - ${errorText}`, 'error');
