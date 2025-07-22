@@ -48,8 +48,7 @@
             <p><strong>用戶 ID:</strong> <span id="liff-userId">載入中...</span></p>
             <p><strong>顯示名稱:</strong> <span id="liff-displayName">載入中...</span></p>
             <p><strong>頭像:</strong> <span id="liff-pictureUrl-container">載入中...</span></p>
-            //<p><strong>狀態訊息:</strong> <span id="liff-statusMessage">載入中...</span></p>
-            //<button id="liff-logout-button" style="display:none;">登出 LIFF</button>
+            
         </div>
         
         <form id="myForm">
@@ -223,17 +222,7 @@
                         pictureUrlContainer.textContent = '無';
                     }
                     
-                    //document.getElementById('liff-statusMessage').textContent = liffUserData.statusMessage || '無';
-
-                    // 顯示登出按鈕
-                    //const logoutButton = document.getElementById('liff-logout-button');
-                    //if (logoutButton) {
-                    //    logoutButton.style.display = 'inline-block'; // 改為 inline-block 讓按鈕正常顯示
-                    //    logoutButton.onclick = () => {
-                    //        liff.logout();
-                    //        window.location.reload(); // 登出後重新載入頁面
-                    //    };
-                    //}
+                    
 
                 } catch (err) {
                     console.error("LIFF 初始化或獲取資料失敗:", err);
