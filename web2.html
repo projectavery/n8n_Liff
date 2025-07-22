@@ -199,7 +199,7 @@
                     if (liff.isInClient()) {
                         liff.openWindow({
                             url: REDIRECT_URL,
-                            external: true // 在外部瀏覽器開啟，而非 LIFF 內建瀏覽器 (如果需要在 LINE 內部開啟則設為 false)
+                            external: false // 在外部瀏覽器開啟，而非 LIFF 內建瀏覽器 (如果需要在 LINE 內部開啟則設為 false)
                         });
                     } else {
                         window.location.href = REDIRECT_URL;
