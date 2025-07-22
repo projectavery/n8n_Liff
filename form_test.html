@@ -41,7 +41,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>訂購表單</h1>
+        <h1></h1>
 
         <div id="liff-info">
             <h2>訂購人LINE資訊</h2>
@@ -103,8 +103,8 @@
                 const currentMinute = now.getMinutes();
 
                 // 將 10:30 AM 轉換為小時和分鐘
-                const cutoffHour = 10;
-                const cutoffMinute = 30;
+                const cutoffHour = 17;
+                const cutoffMinute = 00;
 
                 if (currentHour > cutoffHour || (currentHour === cutoffHour && currentMinute > cutoffMinute)) {
                     showMessage('已超過訂購時間 (10:30 AM)，無法送出表單。', 'error');
