@@ -265,21 +265,25 @@
                         pictureUrlContainer.textContent = '無';
                     }
                     
-                    // *** 新增好友狀態判斷邏輯 ***
+                    // *** 新增好友狀態判斷邏輯 (增加除錯輸出) ***
                     const friendship = await liff.getFriendship();
+                    console.log("LIFF Friendship object:", friendship); // 輸出完整的 friendship 物件
+                    console.log("friendship.friendFlag:", friendship.friendFlag); // 輸出 friendFlag 的值
+
                     if (friendship.friendFlag) {
                         isFriend = true;
                         // 如果是好友，顯示表單，隱藏提示訊息
                         myForm.style.display = 'block'; // 顯示表單
                         friendshipAlert.style.display = 'none'; // 隱藏好友提示
-                        console.log("用戶已是好友。");
+                        console.log("用戶已是好友。表單已顯示，好友提示已隱藏。");
                     } else {
                         isFriend = false;
                         // 如果不是好友，隱藏表單，顯示提示訊息
                         myForm.style.display = 'none'; // 隱藏表單
                         friendshipAlert.style.display = 'block'; // 顯示好友提示
-                        console.log("用戶不是好友。");
+                        console.log("用戶不是好友。表單已隱藏，好友提示已顯示。");
                     }
+                    console.log("isFriend status after check:", isFriend); // 輸出 isFriend 最終狀態
 
                 } catch (err) {
                     console.error("LIFF 初始化或獲取資料失敗:", err);
