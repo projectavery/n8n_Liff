@@ -48,6 +48,13 @@
             <p><strong>頭像:</strong> <span id="liff-pictureUrl-container">載入中...</span></p>
             <p><strong>顯示名稱:</strong> <span id="liff-displayName">載入中...</span></p>
         </div>
+
+        <div id="friendship-alert">
+            <p>請先將本官方帳號加為好友，才能使用此表單。</p>
+            <button onclick="liff.openWindow({ url: "@498okygz", external: true });">
+                加入好友
+            </button>
+        </div>
         
         <form id="myForm">
             <label for="textField1">飲料品項:</label>
@@ -97,6 +104,7 @@
 
         // 全局變數用於儲存 LIFF 用戶資料
         let liffUserData = null;
+        let isFriend = false; // 新增變數來追蹤好友狀態
 
         document.addEventListener('DOMContentLoaded', () => {
             //fetchDropdownOptions('選項清單', 'dropdown1'); // 從 '選項清單' 工作表填充第一個下拉選單
@@ -108,6 +116,12 @@
 
             myForm.addEventListener('submit', async (event) => {
                 event.preventDefault(); // 防止表單預設提交行為
+
+                // 再次檢查好友狀態，確保不會在非好友狀態下送出表單
+                if (!isFriend) {
+                    showMessage('請先加入好友才能送出表單！', 'error');
+                    return;
+                }
 
                 // --- 1. 送出表單前判斷時間 ---
                 const now = new Date();
@@ -251,7 +265,21 @@
                         pictureUrlContainer.textContent = '無';
                     }
                     
-                    
+                    // *** 新增好友狀態判斷 ***
+                    const friendship = await liff.getFriendship();
+                    if (friendship.friendFlag) {
+                        isFriend = true;
+                        // 如果是好友，顯示表單，隱藏提示訊息
+                        myForm.style.display = 'block';
+                        friendshipAlert.style.display = 'none';
+                        console.log("用戶已是好友。");
+                    } else {
+                        isFriend = false;
+                        // 如果不是好友，隱藏表單，顯示提示訊息
+                        myForm.style.display = 'none';
+                        friendshipAlert.style.display = 'block';
+                        console.log("用戶不是好友。");
+                    }
 
                 } catch (err) {
                     console.error("LIFF 初始化或獲取資料失敗:", err);
