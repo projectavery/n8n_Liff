@@ -133,7 +133,7 @@
                 const cutoffMinute = 00;
 
                 if (currentHour > cutoffHour || (currentHour === cutoffHour && currentMinute > cutoffMinute)) {
-                    showMessage('已超過訂購時間 (10:30 AM)，無法送出表單。', 'error');
+                    showMessage('已超過訂購時間 (17:00 AM)，無法送出表單。', 'error');
                     return; // 阻止表單提交
                 }
                 // --- 時間判斷結束 ---
@@ -144,6 +144,13 @@
                     data[key] = value;
                 }
 
+                // --- 新增：判斷 textField3 欄位是否為空白，如果空白回傳"無" ---
+                // 檢查 textField3 是否為空字串、undefined 或 null
+                if (data.textField3 === '' || data.textField3 === undefined || data.textField3 === null) {
+                    data.textField3 = '無'; // 將其設定為 "無"
+                }
+                // --- 判斷結束 ---
+                
                 // 將 LIFF 用戶資料加入到提交的數據中
                 if (liffUserData) {
                     data.liffUserId = liffUserData.userId;
