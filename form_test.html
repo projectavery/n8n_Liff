@@ -37,6 +37,9 @@
             vertical-align: middle;
             margin-right: 10px;
         }
+
+        #myForm { display: none; } /* 🔧 修正重點 2：表單預設隱藏 */
+        
     </style>
 </head>
 <body>
@@ -242,6 +245,7 @@
 
             // --- LIFF 初始化和用戶資料獲取 ---
             async function initializeLiff() {
+                const friendshipAlert = document.getElementById('friendship-alert');
                 try {
                     await liff.init({ liffId: LIFF_ID });
 
