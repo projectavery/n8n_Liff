@@ -222,7 +222,7 @@
       }
       if (!note.trim()) note = "無";
       const data = { uid, brand, item, flavor, sweetness, ice, quantity, ext, note };
-      fetch("https://你的-webhook-url", {
+      fetch("https://projectboy-n8n-free.hf.space/webhook/dynamic_form", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -250,3 +250,4 @@
   </script>
 </body>
 </html>
+
