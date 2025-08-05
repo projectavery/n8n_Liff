@@ -230,7 +230,6 @@
       .then(res => {
         if (res.ok) {
           alert("✅ 表單已成功送出！");
-          setTimeout(() => document.getElementById("formContainer").style.display = "none", 2000);
           document.getElementById("item").value = "";
           document.getElementById("flavor").innerHTML = '<option value="" disabled selected>請先選擇飲品分類</option>';
           document.getElementById("flavor").disabled = true;
@@ -239,6 +238,9 @@
           document.getElementById("quantity").value = "";
           document.getElementById("ext").value = "";
           document.getElementById("note").value = "";
+          setTimeout(() => {
+            liff.closeWindow();
+          }, 2000);
         } else {
           alert("❌ 發送失敗，請稍後再試。");
         }
@@ -250,4 +252,5 @@
   </script>
 </body>
 </html>
+
 
