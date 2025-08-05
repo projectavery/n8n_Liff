@@ -2,10 +2,24 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>動態飲料訂購單</title>
+  <title>動態飲品訂購單</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 30px; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
     label { font-weight: bold; display: block; margin-top: 20px; }
     select, input, textarea {
       width: 300px;
@@ -25,6 +39,7 @@
       width: 320px;
       background-color: #fff3cd;
       color: #856404;
+      text-align: center;
     }
     #addFriendBtn {
       display: inline-block;
@@ -106,17 +121,15 @@
     let allData = [];
 
     async function init() {
-      await liff.init({ liffId: "2007786741-6QMmP4Kg" });
-      if (!liff.isInClient()) {
-        alert("⚠️請使用 LINE APP 開啟此表單以正常填寫訂單 🙏");
+      if (!liff.isInClient() && !liff.isLoggedIn()) {
+        document.body.innerHTML = "<h3 style='text-align:center;'>⚠️請使用 LINE APP 開啟此表單以正常填寫訂單 🙏</h3>";
         return;
       }
-      
+      await liff.init({ liffId: "2007786741-6QMmP4Kg" });
       if (!liff.isLoggedIn()) {
         liff.login();
         return;
       }
-
       const isFriend = await liff.getFriendship();
       const profile = await liff.getProfile();
       const uid = profile.userId;
@@ -196,37 +209,19 @@
       const quantity = document.getElementById("quantity").value;
       const ext = document.getElementById("ext").value;
       let note = document.getElementById("note").value;
-
       if (!item || !flavor || !sweetness || !ice || !quantity || !ext) {
         alert("⚠️ 除備註外，所有欄位都必須填寫！");
         return;
       }
-
       const now = new Date();
       const deadlineHour = 16;
       const deadlineMinute = 30;
-      if (
-        now.getHours() > deadlineHour ||
-        (now.getHours() === deadlineHour && now.getMinutes() >= deadlineMinute)
-      ) {
+      if (now.getHours() > deadlineHour || (now.getHours() === deadlineHour && now.getMinutes() >= deadlineMinute)) {
         alert("⚠️ 訂單時間已超過下午 4:30，無法送出！");
         return;
       }
-
       if (!note.trim()) note = "無";
-
-      const data = {
-        uid,
-        brand,
-        item,
-        flavor,
-        sweetness,
-        ice,
-        quantity,
-        ext,
-        note
-      };
-
+      const data = { uid, brand, item, flavor, sweetness, ice, quantity, ext, note };
       fetch("https://你的-webhook-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -235,9 +230,7 @@
       .then(res => {
         if (res.ok) {
           alert("✅ 表單已成功送出！");
-          setTimeout(() => {
-            document.getElementById("formContainer").style.display = "none";
-          }, 2000);
+          setTimeout(() => document.getElementById("formContainer").style.display = "none", 2000);
           document.getElementById("item").value = "";
           document.getElementById("flavor").innerHTML = '<option value="" disabled selected>請先選擇飲品分類</option>';
           document.getElementById("flavor").disabled = true;
@@ -250,14 +243,10 @@
           alert("❌ 發送失敗，請稍後再試。");
         }
       })
-      .catch(err => {
-        alert("❌ 發送錯誤：" + err);
-      });
+      .catch(err => alert("❌ 發送錯誤：" + err));
     }
 
     init();
   </script>
 </body>
 </html>
-
-
