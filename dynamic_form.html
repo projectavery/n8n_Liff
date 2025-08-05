@@ -225,16 +225,17 @@
 
       // 條件 2：不可超過上午11點
       const now = new Date();
-      const deadlineHour = 16;
-      const deadlineMinute = 30;
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
 
-      if (
-        now.getHours() > deadlineHour ||
-        (now.getHours() === deadlineHour && now.getMinutes() >= deadlineMinute)
-      ) {
-        alert("⚠️ 訂單時間已超過下午 4:30，無法送出！");
-        return;
-      }
+      // 將 10:30 AM 轉換為小時和分鐘
+      const cutoffHour = 17;
+      const cutoffMinute = 00;
+
+      if (currentHour > cutoffHour || (currentHour === cutoffHour && currentMinute > cutoffMinute)) {
+         showMessage('已超過訂購時間 (17:00 AM)，無法送出表單。', 'error');
+         return; // 阻止表單提交
+      }
       
       // 送出 webhook
       fetch(webhookUrl, {
@@ -262,3 +263,4 @@
   </script>
 </body>
 </html>
+
