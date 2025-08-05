@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>動態飲料訂購單</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    label { font-weight: bold; display: block; margin-top: 20px; }
+    select, input, textarea {
+      width: 300px;
+      padding: 5px;
+      font-size: 16px;
+      margin-top: 5px;
+    }
+    textarea {
+      height: 80px;
+      resize: vertical;
+    }
+    #formContainer {
+      display: none;
+    }
+    #friendCheck {
+      display: none;
+      border: 1px solid #ccc;
+      padding: 20px;
+      width: 320px;
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    #addFriendBtn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 16px;
+      background-color: #1db446;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="friendCheck">
+    <p>請先加入我們的 LINE 好友以填寫表單 😊</p>
+    <a id="addFriendBtn" href="https://line.me/R/ti/p/@498okygz" target="_blank">➕ 加入好友</a>
+  </div>
+
+  <div id="formContainer">
+    <h2>動態飲料訂購單</h2>
+
+    <label for="brand">今日品牌：</label>
+    <input type="text" id="brand" readonly placeholder="載入中...">
+
+    <label for="item">飲品分類：</label>
+    <select id="item" disabled required>
+      <option value="" disabled selected>-- 請選擇飲品分類 --</option>
+    </select>
+
+    <label for="flavor">飲品名稱：</label>
+    <select id="flavor" disabled required>
+      <option value="" disabled selected>請先選擇飲品分類</option>
+    </select>
+
+    <label for="sweetness">甜度：</label>
+    <select id="sweetness" required>
+      <option value="" selected disabled>-- 請選擇甜度 --</option>
+      <option value="正常(10分)">正常(10分)</option>
+      <option value="少糖(8分)">少糖(8分)</option>
+      <option value="半糖(5分)">半糖(5分)</option>
+      <option value="微糖(3分)">微糖(3分)</option>
+      <option value="無糖">無糖</option>
+    </select>
+
+    <label for="ice">冰塊：</label>
+    <select id="ice" required>
+      <option value="" disabled selected>-- 請選擇冰塊 --</option>
+      <option value="正常(10分)">正常(10分)</option>
+      <option value="少冰(8分)">少冰(8分)</option>
+      <option value="微冰(3分)">微冰(3分)</option>
+      <option value="去冰(薄冰)">去冰(薄冰)</option>
+    </select>
+
+    <label for="quantity">數量：</label>
+    <input type="number" id="quantity" min="1" placeholder="請輸入數量" required>
+
+    <label for="ext">分機：</label>
+    <input type="text" id="ext" placeholder="例:#123" required>
+
+    <label for="note">備註：</label>
+    <textarea id="note" placeholder="例:加珍珠、布丁"></textarea>
+  </div>
+
+  <script>
+    const brandInput = document.getElementById('brand');
+    const itemSelect = document.getElementById('item');
+    const flavorSelect = document.getElementById('flavor');
+
+    let allData = [];
+
+    async function init() {
+      await liff.init({ liffId: "2007786741-6QMmP4Kg" });
+
+      const isFriend = await liff.getFriendship();
+      if (isFriend.friendFlag) {
+        document.getElementById("formContainer").style.display = "block";
+        document.getElementById("friendCheck").style.display = "none";
+        loadBrandData(); // ← 好友才載入表單資料
+      } else {
+        document.getElementById("formContainer").style.display = "none";
+        document.getElementById("friendCheck").style.display = "block";
+      }
+    }
+
+    async function loadBrandData() {
+      const apiUrl = "https://script.google.com/macros/s/AKfycbyH5_ZyKSBq1s49KRwSRlkjzWQsheTaLdFXAvU1vju4pAuY3kmdGYZ1GNukkJ3qGQ/exec";
+
+      try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        const brands = data.brands;
+        allData = data.items;
+
+        if (brands.length === 0) {
+          brandInput.value = '⚠️ 無可用品牌';
+          return;
+        }
+
+        const selectedBrand = brands[0];
+        brandInput.value = selectedBrand;
+        loadItemsForBrand(selectedBrand);
+      } catch (err) {
+        brandInput.value = '⚠️ 載入失敗';
+        console.error(err);
+      }
+    }
+
+    function loadItemsForBrand(brand) {
+      const items = allData
+        .filter(row => row[0] === brand)
+        .map(row => row[1]);
+
+      const uniqueItems = [...new Set(items)];
+
+      itemSelect.innerHTML = '<option value="" disabled selected>-- 請選擇飲品分類 --</option>';
+      flavorSelect.innerHTML = '<option value="" disabled selected>請先選擇飲品分類</option>';
+      flavorSelect.disabled = true;
+
+      if (uniqueItems.length === 0) {
+        itemSelect.disabled = true;
+        return;
+      }
+
+      uniqueItems.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        itemSelect.appendChild(opt);
+      });
+
+      itemSelect.disabled = false;
+    }
+
+    itemSelect.addEventListener('change', () => {
+      const selectedBrand = brandInput.value.trim();
+      const selectedItem = itemSelect.value;
+
+      const flavors = allData
+        .filter(row => row[0] === selectedBrand && row[1] === selectedItem)
+        .map(row => row[2]);
+
+      const uniqueFlavors = [...new Set(flavors)];
+
+      flavorSelect.innerHTML = '<option value="" disabled selected>-- 請選擇飲品 --</option>';
+      uniqueFlavors.forEach(flavor => {
+        const opt = document.createElement('option');
+        opt.value = flavor;
+        opt.textContent = flavor;
+        flavorSelect.appendChild(opt);
+      });
+
+      flavorSelect.disabled = false;
+    });
+
+    init(); // 啟動 LIFF 檢查流程
+  </script>
+</body>
+</html>
