@@ -2,50 +2,29 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>動態飲料訂購單</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f9f9f9;
-    }
-    h2 {
-      margin-bottom: 15px;
-      text-align: center;
-    }
-    #formContainer, #friendCheck {
-      max-width: 500px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input, select, textarea, button {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    label { font-weight: bold; display: block; margin-top: 20px; }
+    select, input, textarea {
+      width: 300px;
+      padding: 5px;
       font-size: 16px;
-      box-sizing: border-box;
+      margin-top: 5px;
     }
-    button {
-      margin-top: 20px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+    textarea {
+      height: 80px;
+      resize: vertical;
     }
-    button:hover {
-      background-color: #0056b3;
+    #formContainer { display: none; }
+    #friendCheck {
+      display: none;
+      border: 1px solid #ccc;
+      padding: 20px;
+      width: 320px;
+      background-color: #fff3cd;
+      color: #856404;
     }
     #addFriendBtn {
       display: inline-block;
@@ -56,54 +35,41 @@
       text-decoration: none;
       border-radius: 5px;
     }
-    #userInfo {
-      border: 1px dashed #ccc;
-      padding: 10px;
-      margin-bottom: 20px;
-      background-color: #f1f1f1;
-    }
-    #userInfo img {
-      width: 50px;
-      border-radius: 50%;
-      vertical-align: middle;
-    }
-    #userInfo span {
-      margin-left: 10px;
-      vertical-align: middle;
-    }
   </style>
 </head>
 <body>
-
-  <div id="friendCheck" style="display:none;">
+  <div id="friendCheck">
     <p>請先加入我們的 LINE 好友以填寫表單 😊</p>
     <a id="addFriendBtn" href="https://line.me/R/ti/p/@498okygz" target="_blank">➕ 加入好友</a>
   </div>
 
-  <div id="formContainer" style="display:none;">
+  <div id="formContainer">
     <h2>動態飲料訂購單</h2>
 
-    <div id="userInfo">
-      <strong>訂購人 LINE 資訊</strong><br>
-      <img id="userImage" src="" alt="頭像"><span id="userName">載入中...</span>
+    <div id="userProfile" style="border:1px solid #ccc; background:#f8f9fa; padding:10px; width:320px;">
+      <strong>訂購人LINE資訊</strong>
+      <p>頭像：<img id="userImage" src="" alt="User" style="width:40px;height:40px;border-radius:50%;"></p>
+      <p>顯示名稱：<span id="userName"></span></p>
     </div>
 
-    <label>今日品牌：</label>
+    <input type="hidden" id="uid" name="uid">
+
+    <label for="brand">今日品牌：</label>
     <input type="text" id="brand" readonly placeholder="載入中...">
 
-    <label>飲品分類：</label>
+    <label for="item">飲品分類：</label>
     <select id="item" disabled required>
       <option value="" disabled selected>-- 請選擇飲品分類 --</option>
     </select>
 
-    <label>飲品名稱：</label>
+    <label for="flavor">飲品名稱：</label>
     <select id="flavor" disabled required>
       <option value="" disabled selected>請先選擇飲品分類</option>
     </select>
 
-    <label>甜度：</label>
+    <label for="sweetness">甜度：</label>
     <select id="sweetness" required>
-      <option value="" disabled selected>-- 請選擇甜度 --</option>
+      <option value="" selected disabled>-- 請選擇甜度 --</option>
       <option value="正常(10分)">正常(10分)</option>
       <option value="少糖(8分)">少糖(8分)</option>
       <option value="半糖(5分)">半糖(5分)</option>
@@ -111,7 +77,7 @@
       <option value="無糖">無糖</option>
     </select>
 
-    <label>冰塊：</label>
+    <label for="ice">冰塊：</label>
     <select id="ice" required>
       <option value="" disabled selected>-- 請選擇冰塊 --</option>
       <option value="正常(10分)">正常(10分)</option>
@@ -120,22 +86,20 @@
       <option value="去冰(薄冰)">去冰(薄冰)</option>
     </select>
 
-    <label>數量：</label>
-    <input type="number" id="quantity" min="1" required>
+    <label for="quantity">數量：</label>
+    <input type="number" id="quantity" min="1" placeholder="請輸入數量" required>
 
-    <label>分機：</label>
-    <input type="text" id="ext" required placeholder="例：#123">
+    <label for="ext">分機：</label>
+    <input type="text" id="ext" placeholder="例:#123" required>
 
-    <label>備註：</label>
-    <textarea id="note" placeholder="例：加珍珠、袋子分裝等"></textarea>
+    <label for="note">備註：</label>
+    <textarea id="note" placeholder="例:加珍珠、布丁"></textarea>
 
+    <br><br>
     <button onclick="submitForm()">送出表單</button>
   </div>
 
   <script>
-    const apiUrl = "https://script.google.com/macros/s/AKfycbyH5_ZyKSBq1s49KRwSRlkjzWQsheTaLdFXAvU1vju4pAuY3kmdGYZ1GNukkJ3qGQ/exec";
-    const webhookUrl = "https://projectboy-n8n-free.hf.space/webhook/dynamic_form"; // ← 請換成你自己的 webhook URL
-
     const brandInput = document.getElementById('brand');
     const itemSelect = document.getElementById('item');
     const flavorSelect = document.getElementById('flavor');
@@ -143,15 +107,24 @@
 
     async function init() {
       await liff.init({ liffId: "2007786741-6QMmP4Kg" });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
 
       const isFriend = await liff.getFriendship();
+      const profile = await liff.getProfile();
+      const uid = profile.userId;
+      const name = profile.displayName;
+      const picture = profile.pictureUrl;
+
+      document.getElementById("uid").value = uid;
+      document.getElementById("userName").textContent = name;
+      document.getElementById("userImage").src = picture;
+
       if (isFriend.friendFlag) {
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("friendCheck").style.display = "none";
-        const profile = await liff.getProfile();
-        document.getElementById("userImage").src = profile.pictureUrl;
-        document.getElementById("userName").textContent = `顯示名稱：${profile.displayName}`;
-        window.lineUser = profile.displayName;
         loadBrandData();
       } else {
         document.getElementById("formContainer").style.display = "none";
@@ -160,102 +133,120 @@
     }
 
     async function loadBrandData() {
-      const res = await fetch(apiUrl);
-      const data = await res.json();
-      const brands = data.brands;
-      allData = data.items;
-
-      if (brands.length === 0) {
-        brandInput.value = '⚠️ 無可用品牌';
-        return;
+      const apiUrl = "https://script.google.com/macros/s/AKfycbyH5_ZyKSBq1s49KRwSRlkjzWQsheTaLdFXAvU1vju4pAuY3kmdGYZ1GNukkJ3qGQ/exec";
+      try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        const brands = data.brands;
+        allData = data.items;
+        if (brands.length === 0) {
+          brandInput.value = '⚠️ 無可用品牌';
+          return;
+        }
+        brandInput.value = brands[0];
+        loadItemsForBrand(brands[0]);
+      } catch (err) {
+        brandInput.value = '⚠️ 載入失敗';
       }
-
-      brandInput.value = brands[0];
-      loadItemsForBrand(brands[0]);
     }
 
     function loadItemsForBrand(brand) {
-      const items = [...new Set(allData.filter(r => r[0] === brand).map(r => r[1]))];
+      const items = [...new Set(allData.filter(row => row[0] === brand).map(row => row[1]))];
       itemSelect.innerHTML = '<option value="" disabled selected>-- 請選擇飲品分類 --</option>';
       flavorSelect.innerHTML = '<option value="" disabled selected>請先選擇飲品分類</option>';
       flavorSelect.disabled = true;
-
-      items.forEach(i => {
+      items.forEach(item => {
         const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = i;
+        opt.value = item;
+        opt.textContent = item;
         itemSelect.appendChild(opt);
       });
-
       itemSelect.disabled = false;
     }
 
     itemSelect.addEventListener('change', () => {
-      const brand = brandInput.value.trim();
-      const category = itemSelect.value;
-      const flavors = [...new Set(allData.filter(r => r[0] === brand && r[1] === category).map(r => r[2]))];
+      const selectedBrand = brandInput.value;
+      const selectedItem = itemSelect.value;
+      const flavors = [...new Set(allData
+        .filter(row => row[0] === selectedBrand && row[1] === selectedItem)
+        .map(row => row[2]))];
 
       flavorSelect.innerHTML = '<option value="" disabled selected>-- 請選擇飲品 --</option>';
-      flavors.forEach(f => {
+      flavors.forEach(flavor => {
         const opt = document.createElement('option');
-        opt.value = f;
-        opt.textContent = f;
+        opt.value = flavor;
+        opt.textContent = flavor;
         flavorSelect.appendChild(opt);
       });
-
       flavorSelect.disabled = false;
     });
 
     function submitForm() {
+      const uid = document.getElementById("uid").value;
       const brand = brandInput.value;
       const item = itemSelect.value;
       const flavor = flavorSelect.value;
-      const sweetness = document.getElementById('sweetness').value;
-      const ice = document.getElementById('ice').value;
-      const quantity = document.getElementById('quantity').value;
-      const ext = document.getElementById('ext').value;
-      const note = document.getElementById('note').value;
-      const user = window.lineUser || '未知';
+      const sweetness = document.getElementById("sweetness").value;
+      const ice = document.getElementById("ice").value;
+      const quantity = document.getElementById("quantity").value;
+      const ext = document.getElementById("ext").value;
+      let note = document.getElementById("note").value;
 
-      // 條件 1：欄位必填（除了備註）
-      if (!brand || !item || !flavor || !sweetness || !ice || !quantity || !ext) {
-        alert("❗ 所有欄位（備註除外）皆為必填！");
+      if (!item || !flavor || !sweetness || !ice || !quantity || !ext) {
+        alert("⚠️ 除備註外，所有欄位都必須填寫！");
         return;
       }
 
-      // 條件 2：不可超過上午11點
       const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
+      const deadlineHour = 16;
+      const deadlineMinute = 30;
+      if (
+        now.getHours() > deadlineHour ||
+        (now.getHours() === deadlineHour && now.getMinutes() >= deadlineMinute)
+      ) {
+        alert("⚠️ 訂單時間已超過下午 4:30，無法送出！");
+        return;
+      }
 
-      // 將 10:30 AM 轉換為小時和分鐘
-      const cutoffHour = 17;
-      const cutoffMinute = 00;
+      if (!note.trim()) note = "無";
 
-      if (currentHour > cutoffHour || (currentHour === cutoffHour && currentMinute > cutoffMinute)) {
-         showMessage('已超過訂購時間 (17:00 AM)，無法送出表單。', 'error');
-         return; // 阻止表單提交
-      }
-      
-      // 送出 webhook
-      fetch(webhookUrl, {
+      const data = {
+        uid,
+        brand,
+        item,
+        flavor,
+        sweetness,
+        ice,
+        quantity,
+        ext,
+        note
+      };
+
+      fetch("https://你的-webhook-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user, brand, item, flavor, sweetness, ice, quantity, ext, note
-        })
+        body: JSON.stringify(data)
       })
-      .then(() => {
-        alert("✅ 表單送出成功！");
-        document.querySelectorAll("#formContainer select, #formContainer input, #formContainer textarea").forEach(e => {
-          if (e.id !== "brand") e.value = "";
-        });
-        flavorSelect.disabled = true;
-        itemSelect.selectedIndex = 0;
+      .then(res => {
+        if (res.ok) {
+          alert("✅ 表單已成功送出！");
+          setTimeout(() => {
+            document.getElementById("formContainer").style.display = "none";
+          }, 2000);
+          document.getElementById("item").value = "";
+          document.getElementById("flavor").innerHTML = '<option value="" disabled selected>請先選擇飲品分類</option>';
+          document.getElementById("flavor").disabled = true;
+          document.getElementById("sweetness").value = "";
+          document.getElementById("ice").value = "";
+          document.getElementById("quantity").value = "";
+          document.getElementById("ext").value = "";
+          document.getElementById("note").value = "";
+        } else {
+          alert("❌ 發送失敗，請稍後再試。");
+        }
       })
       .catch(err => {
-        alert("❌ 發送失敗，請稍後再試");
-        console.error(err);
+        alert("❌ 發送錯誤：" + err);
       });
     }
 
@@ -263,4 +254,3 @@
   </script>
 </body>
 </html>
-
