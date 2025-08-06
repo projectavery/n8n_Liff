@@ -135,11 +135,13 @@
     let allData = [];
 
     async function init() {
+      await liff.init({ liffId: "2007786741-6QMmP4Kg" });
+      
       if (!liff.isInClient() && !liff.isLoggedIn()) {
         document.body.innerHTML = "<h3 style='text-align:center;'>⚠️請使用 LINE APP 開啟此表單以正常填寫訂單 🙏</h3>";
         return;
       }
-      await liff.init({ liffId: "2007786741-6QMmP4Kg" });
+      
       if (!liff.isLoggedIn()) {
         liff.login();
         return;
@@ -267,3 +269,4 @@
   </script>
 </body>
 </html>
+
