@@ -50,6 +50,20 @@
       text-decoration: none;
       border-radius: 5px;
     }
+    #submitBtn {
+      font-size: 18px;
+      padding: 12px 24px;
+      width: 320px;
+      border: none;
+      border-radius: 6px;
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #submitBtn:hover {
+      background-color: #218838;
+    }
   </style>
 </head>
 <body>
@@ -111,7 +125,7 @@
     <textarea id="note" placeholder="例:加珍珠、布丁"></textarea>
 
     <br><br>
-    <button onclick="submitForm()">送出表單</button>
+    <button id="submitBtn" onclick="submitForm()">送出表單</button>
   </div>
 
   <script>
@@ -253,7 +267,3 @@
   </script>
 </body>
 </html>
-
-
-
-
