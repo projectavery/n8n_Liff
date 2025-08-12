@@ -135,11 +135,11 @@
                 const currentMinute = now.getMinutes();
 
                 // 將 10:30 AM 轉換為小時和分鐘
-                const cutoffHour = 17;
-                const cutoffMinute = 00;
+                const cutoffHour = 10;
+                const cutoffMinute = 30;
 
                 if (currentHour > cutoffHour || (currentHour === cutoffHour && currentMinute > cutoffMinute)) {
-                    showMessage('已超過訂購時間 (17:00 AM)，無法送出表單。', 'error');
+                    showMessage('已超過訂購時間 (10:30 AM)，無法送出表單。', 'error');
                     return; // 阻止表單提交
                 }
                 // --- 時間判斷結束 ---
@@ -191,7 +191,7 @@
                         if (liff.isInClient()) { // 判斷是否在 LINE 應用程式內
                             setTimeout(() => {
                                 liff.closeWindow(); // 關閉 LIFF 視窗
-                            }, 2000); // 2秒後關閉，讓使用者看到成功訊息
+                            }, 1000); // 2秒後關閉，讓使用者看到成功訊息
                         }
                         // --- 關閉 LIFF 視窗結束 ---
                         
@@ -316,4 +316,5 @@
     </script>
 </body>
 </html>
+
 
