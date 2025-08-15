@@ -231,10 +231,10 @@
         return;
       }
       const now = new Date();
-      const deadlineHour = 16;
-      const deadlineMinute = 30;
+      const deadlineHour = 11;
+      const deadlineMinute = 00;
       if (now.getHours() > deadlineHour || (now.getHours() === deadlineHour && now.getMinutes() >= deadlineMinute)) {
-        alert("⚠️ 訂單時間已超過下午 4:30，無法送出！");
+        alert("⚠️ 訂單時間已超過上午 11:00，無法送出！");
         return;
       }
       if (!note.trim()) note = "無";
@@ -269,6 +269,7 @@
   </script>
 </body>
 </html>
+
 
 
 
