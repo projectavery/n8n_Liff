@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>悼念花籃訂購單</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+      function onGetVenueAndHallData(data) {
+        window.venueAndHallData = data;
+        populateVenueSelect();
+      }
+
+      function onGetProductData(data) {
+        window.productData = data;
+        populateProductSelects();
+      }
+    </script>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -375,258 +386,245 @@
     </div>
 
     <script>
-        const venueAndHallData = {
-            '台北市立第一殯儀館': ['一館景行廳', '一館景福廳', '一館景仰廳', '一館景德廳', '一館景明廳', '一館景愛廳'],
-            '台北市立第二殯儀館': ['二館景行廳', '二館景福廳', '二館景仰廳'],
-            '新北巿立殯儀館': ['甲級廳', '乙級廳', '丙級廳']
+      // 移除原有的 hardcoded data
+      // const venueAndHallData = { ... };
+      // const productData = { ... };
+
+      async function initializeLiff() {
+        try {
+          await liff.init({
+            liffId: '2008028302-Xe2G97Pw'
+          });
+          if (liff.isLoggedIn()) {
+            getLineProfile();
+          } else {
+            liff.login();
+          }
+        } catch (err) {
+          console.error("LIFF initialization failed", err);
+          document.getElementById('line-displayName').textContent = '初始化失敗';
+        }
+      }
+
+      async function getLineProfile() {
+        try {
+          const profile = await liff.getProfile();
+          const displayName = profile.displayName;
+          const pictureUrl = profile.pictureUrl;
+          const userId = profile.userId;
+          document.getElementById('line-avatar').src = pictureUrl;
+          document.getElementById('line-displayName').textContent = displayName;
+          document.getElementById('uid').value = userId;
+        } catch (err) {
+          console.error("Failed to get LINE profile", err);
+          document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeLiff();
+        // Call Apps Script functions to get data
+        google.script.run.withSuccessHandler(onGetVenueAndHallData).getVenueAndHallData();
+        google.script.run.withSuccessHandler(onGetProductData).getProductData();
+      });
+
+      function populateVenueSelect() {
+        // Use the globally available data fetched from the backend
+        const venueSelect = document.getElementById('funeralVenue');
+        const hallSelect = document.getElementById('hallName');
+        venueSelect.innerHTML = '<option value="" disabled selected>請選擇場館</option>';
+        for (const venue in window.venueAndHallData) {
+          const option = document.createElement('option');
+          option.value = venue;
+          option.textContent = venue;
+          venueSelect.appendChild(option);
+        }
+        hallSelect.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
+      }
+
+      function updateHallSelect() {
+        const venueSelect = document.getElementById('funeralVenue');
+        const hallSelect = document.getElementById('hallName');
+        const selectedVenue = venueSelect.value;
+        hallSelect.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
+        if (selectedVenue && window.venueAndHallData[selectedVenue]) {
+          const halls = window.venueAndHallData[selectedVenue];
+          halls.forEach(hall => {
+            const option = document.createElement('option');
+            option.value = hall;
+            option.textContent = hall;
+            hallSelect.appendChild(option);
+          });
+        }
+      }
+
+      function populateProductSelects() {
+        // Use the globally available data fetched from the backend
+        const products = {
+          'flowerBasket': '花籃',
+          'wreath': '籃花',
+          'fruitBasket': '水果籃'
+        };
+        for (const key in products) {
+          const category = products[key];
+          const selectElement = document.getElementById(`${key}Style`);
+          selectElement.innerHTML = '<option value="" disabled selected>請選擇樣式</option>';
+          if (window.productData[category]) {
+            const styles = Object.keys(window.productData[category]);
+            styles.forEach(style => {
+              const option = document.createElement('option');
+              option.value = style;
+              option.textContent = style;
+              selectElement.appendChild(option);
+            });
+          }
+        }
+      }
+
+      function updatePrice(productType) {
+        const styleSelect = document.getElementById(`${productType}Style`);
+        const priceInput = document.getElementById(`${productType}Price`);
+        const imageElement = document.getElementById(`${productType}Image`);
+        const selectedStyle = styleSelect.value;
+        let category;
+        if (productType === 'flowerBasket') category = '花籃';
+        else if (productType === 'wreath') category = '籃花';
+        else if (productType === 'fruitBasket') category = '水果籃';
+
+        // Use the globally available data fetched from the Apps Script
+        if (selectedStyle && window.productData[category] && window.productData[category][selectedStyle]) {
+          const data = window.productData[category][selectedStyle];
+          priceInput.value = data.price;
+          imageElement.src = data.photoUrl;
+          imageElement.style.display = 'block';
+        } else {
+          priceInput.value = 0;
+          imageElement.src = '';
+          imageElement.style.display = 'none';
+        }
+        calculateTotal();
+      }
+
+      const checkboxes = document.querySelectorAll('input[type="checkbox"][name="productType"]');
+      checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', (event) => {
+          const productType = event.target.value;
+          const detailsElement = document.getElementById(`${productType}Details`);
+          const imageElement = document.getElementById(`${productType}Image`);
+          if (event.target.checked) {
+            detailsElement.classList.add('active');
+          } else {
+            detailsElement.classList.remove('active');
+            document.getElementById(`${productType}Style`).selectedIndex = 0;
+            document.getElementById(`${productType}Price`).value = 0;
+            document.getElementById(`${productType}Qty`).value = 0;
+            imageElement.src = '';
+            imageElement.style.display = 'none';
+          }
+          calculateTotal();
+        });
+      });
+
+      function calculateTotal() {
+        let total = 0;
+        const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+        productTypes.forEach(type => {
+          const qty = parseInt(document.getElementById(`${type}Qty`).value) || 0;
+          const price = parseFloat(document.getElementById(`${type}Price`).value) || 0;
+          total += qty * price;
+        });
+        document.getElementById('totalAmount').value = total;
+      }
+
+      function showCustomAlert(title, message) {
+        const modal = document.getElementById('customAlert');
+        const titleElement = document.getElementById('modalTitle');
+        const messageElement = document.getElementById('modalMessage');
+        const okBtn = document.getElementById('modalOkBtn');
+        const closeBtn = document.querySelector('.close-btn');
+
+        titleElement.textContent = title;
+        messageElement.textContent = message;
+        modal.style.display = 'flex';
+
+        const closeModal = () => {
+          modal.style.display = 'none';
         };
 
-        const productData = {
-            '花籃': {
-                '一般花籃': { price: 2000, photoUrl: 'https://cdn.pixabay.com/photo/2016/06/18/17/42/image-1465223_1280.jpg' },
-                '特級花籃': { price: 3500, photoUrl: 'https://cdn.pixabay.com/photo/2017/08/04/18/59/flowers-2581691_1280.jpg' }
-            },
-            '籃花': {
-                '一般籃花': { price: 1500, photoUrl: 'https://cdn.pixabay.com/photo/2018/05/17/17/30/bouquet-3408991_1280.jpg' },
-                '特級籃花': { price: 2500, photoUrl: 'https://cdn.pixabay.com/photo/2016/03/06/07/28/bouquet-1239617_1280.jpg' }
-            },
-            '水果籃': {
-                '普通水果籃': { price: 1000, photoUrl: 'https://cdn.pixabay.com/photo/2018/05/17/09/27/fruits-3407897_1280.jpg' },
-                '豪華水果籃': { price: 2200, photoUrl: 'https://cdn.pixabay.com/photo/2016/09/17/08/42/fruit-1675762_1280.jpg' }
-            }
+        okBtn.onclick = closeModal;
+        closeBtn.onclick = closeModal;
+        window.onclick = (event) => {
+          if (event.target === modal) {
+            closeModal();
+          }
         };
+      }
 
-        async function initializeLiff() {
-            try {
-                await liff.init({
-                    liffId: '2008028302-Xe2G97Pw'
-                });
-                if (liff.isLoggedIn()) {
-                    getLineProfile();
-                } else {
-                    liff.login();
-                }
-            } catch (err) {
-                console.error("LIFF initialization failed", err);
-                document.getElementById('line-displayName').textContent = '初始化失敗';
-            }
-        }
+      document.getElementById('aj_index').addEventListener('submit', function(event) {
+        event.preventDefault();
+        let isValid = true;
+        const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'dedication'];
+        const errorMessages = [];
+        const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
 
-        async function getLineProfile() {
-            try {
-                const profile = await liff.getProfile();
-                const displayName = profile.displayName;
-                const pictureUrl = profile.pictureUrl;
-                const userId = profile.userId;
-                document.getElementById('line-avatar').src = pictureUrl;
-                document.getElementById('line-displayName').textContent = displayName;
-                document.getElementById('uid').value = userId;
-            } catch (err) {
-                console.error("Failed to get LINE profile", err);
-                document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
-            }
-        }
+        document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeLiff();
-            populateVenueSelect();
-            populateProductSelects();
+        requiredFields.forEach(id => {
+          const input = document.getElementById(id);
+          if (!input.value) {
+            input.classList.add('error');
+            isValid = false;
+          }
         });
 
-        function populateVenueSelect() {
-            const venueSelect = document.getElementById('funeralVenue');
-            const hallSelect = document.getElementById('hallName');
-            venueSelect.innerHTML = '<option value="" disabled selected>請選擇場館</option>';
-            for (const venue in venueAndHallData) {
-                const option = document.createElement('option');
-                option.value = venue;
-                option.textContent = venue;
-                venueSelect.appendChild(option);
-            }
-            hallSelect.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
-        }
-
-        function updateHallSelect() {
-            const venueSelect = document.getElementById('funeralVenue');
-            const hallSelect = document.getElementById('hallName');
-            const selectedVenue = venueSelect.value;
-            hallSelect.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
-            if (selectedVenue && venueAndHallData[selectedVenue]) {
-                const halls = venueAndHallData[selectedVenue];
-                halls.forEach(hall => {
-                    const option = document.createElement('option');
-                    option.value = hall;
-                    option.textContent = hall;
-                    hallSelect.appendChild(option);
-                });
-            }
-        }
-
-        function populateProductSelects() {
-            const products = {
-                'flowerBasket': '花籃',
-                'wreath': '籃花',
-                'fruitBasket': '水果籃'
-            };
-            for (const key in products) {
-                const category = products[key];
-                const selectElement = document.getElementById(`${key}Style`);
-                selectElement.innerHTML = '<option value="" disabled selected>請選擇樣式</option>';
-                if (productData[category]) {
-                    const styles = Object.keys(productData[category]);
-                    styles.forEach(style => {
-                        const option = document.createElement('option');
-                        option.value = style;
-                        option.textContent = style;
-                        selectElement.appendChild(option);
-                    });
-                }
-            }
-        }
-
-        function updatePrice(productType) {
-            const styleSelect = document.getElementById(`${productType}Style`);
-            const priceInput = document.getElementById(`${productType}Price`);
-            const imageElement = document.getElementById(`${productType}Image`);
-            const selectedStyle = styleSelect.value;
-            let category;
-            if (productType === 'flowerBasket') category = '花籃';
-            else if (productType === 'wreath') category = '籃花';
-            else if (productType === 'fruitBasket') category = '水果籃';
-
-            if (selectedStyle && productData[category] && productData[category][selectedStyle]) {
-                const data = productData[category][selectedStyle];
-                priceInput.value = data.price;
-                imageElement.src = data.photoUrl;
-                imageElement.style.display = 'block';
-            } else {
-                priceInput.value = 0;
-                imageElement.src = '';
-                imageElement.style.display = 'none';
-            }
-            calculateTotal();
-        }
-
-        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="productType"]');
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', (event) => {
-                const productType = event.target.value;
-                const detailsElement = document.getElementById(`${productType}Details`);
-                const imageElement = document.getElementById(`${productType}Image`);
-                if (event.target.checked) {
-                    detailsElement.classList.add('active');
-                } else {
-                    detailsElement.classList.remove('active');
-                    document.getElementById(`${productType}Style`).selectedIndex = 0;
-                    document.getElementById(`${productType}Price`).value = 0;
-                    document.getElementById(`${productType}Qty`).value = 0;
-                    imageElement.src = '';
-                    imageElement.style.display = 'none';
-                }
-                calculateTotal();
-            });
-        });
-
-        function calculateTotal() {
-            let total = 0;
-            const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
-            productTypes.forEach(type => {
-                const qty = parseInt(document.getElementById(`${type}Qty`).value) || 0;
-                const price = parseFloat(document.getElementById(`${type}Price`).value) || 0;
-                total += qty * price;
-            });
-            document.getElementById('totalAmount').value = total;
-        }
-
-        function showCustomAlert(title, message) {
-            const modal = document.getElementById('customAlert');
-            const titleElement = document.getElementById('modalTitle');
-            const messageElement = document.getElementById('modalMessage');
-            const okBtn = document.getElementById('modalOkBtn');
-            const closeBtn = document.querySelector('.close-btn');
-
-            titleElement.textContent = title;
-            messageElement.textContent = message;
-            modal.style.display = 'flex';
-
-            const closeModal = () => {
-                modal.style.display = 'none';
-            };
-
-            okBtn.onclick = closeModal;
-            closeBtn.onclick = closeModal;
-            window.onclick = (event) => {
-                if (event.target === modal) {
-                    closeModal();
-                }
-            };
-        }
-
-        document.getElementById('aj_index').addEventListener('submit', function(event) {
-            event.preventDefault();
-            let isValid = true;
-            const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'dedication'];
-            const errorMessages = [];
-            const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
-
-            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
-
-            requiredFields.forEach(id => {
-                const input = document.getElementById(id);
-                if (!input.value) {
-                    input.classList.add('error');
-                    isValid = false;
-                }
-            });
-
-            if (!hasSelectedProduct) {
-                errorMessages.push('請至少勾選一項商品類別。');
-            } else {
-                const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
-                productTypes.forEach(type => {
-                    const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
-                    if (checkbox.checked) {
-                        const styleSelect = document.getElementById(`${type}Style`);
-                        const qtyInput = document.getElementById(`${type}Qty`);
-                        if (!styleSelect.value) {
-                            styleSelect.classList.add('error');
-                            isValid = false;
-                            errorMessages.push(`請選擇${styleSelect.previousElementSibling.textContent}的樣式。`);
-                        }
-                        if (parseInt(qtyInput.value) <= 0) {
-                            qtyInput.classList.add('error');
-                            isValid = false;
-                            errorMessages.push(`請輸入${qtyInput.previousElementSibling.textContent}的數量。`);
-                        }
-                    }
-                });
-            }
-
-            const totalAmount = parseFloat(document.getElementById('totalAmount').value);
-            if (totalAmount === 0 && hasSelectedProduct) {
+        if (!hasSelectedProduct) {
+          errorMessages.push('請至少勾選一項商品類別。');
+        } else {
+          const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+          productTypes.forEach(type => {
+            const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            if (checkbox.checked) {
+              const styleSelect = document.getElementById(`${type}Style`);
+              const qtyInput = document.getElementById(`${type}Qty`);
+              if (!styleSelect.value) {
+                styleSelect.classList.add('error');
                 isValid = false;
-                errorMessages.push('合計金額為0，請確認您的選擇。');
-            }
-            
-            const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
-            if (lastFiveDigitsInput.value.trim().length !== 5) {
-                lastFiveDigitsInput.classList.add('error');
+                errorMessages.push(`請選擇${styleSelect.previousElementSibling.textContent}的樣式。`);
+              }
+              if (parseInt(qtyInput.value) <= 0) {
+                qtyInput.classList.add('error');
                 isValid = false;
-                errorMessages.push('轉帳後五碼必須為五位數字。');
+                errorMessages.push(`請輸入${qtyInput.previousElementSibling.textContent}的數量。`);
+              }
             }
+          });
+        }
 
-            if (isValid) {
-                showCustomAlert('訂單送出成功 🎉', '您的訂單已送出，稍後將有專人與您聯繫。');
-            } else {
-                const allErrors = [
-                    ...new Set(errorMessages),
-                    ...Array.from(document.querySelectorAll('input:not([type="checkbox"]).error, select.error'))
-                        .map(el => `請檢查「${el.previousElementSibling.textContent.replace('：', '')}」欄位。`)
-                ].filter(Boolean);
-                
-                showCustomAlert('訂單填寫有誤 ⚠️', allErrors.join('\n'));
-            }
-        });
+        const totalAmount = parseFloat(document.getElementById('totalAmount').value);
+        if (totalAmount === 0 && hasSelectedProduct) {
+          isValid = false;
+          errorMessages.push('合計金額為0，請確認您的選擇。');
+        }
+
+        const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
+        if (lastFiveDigitsInput.value.trim().length !== 5) {
+          lastFiveDigitsInput.classList.add('error');
+          isValid = false;
+          errorMessages.push('轉帳後五碼必須為五位數字。');
+        }
+
+        if (isValid) {
+          showCustomAlert('訂單送出成功 🎉', '您的訂單已送出，稍後將有專人與您聯繫。');
+        } else {
+          const allErrors = [
+            ...new Set(errorMessages),
+            ...Array.from(document.querySelectorAll('input:not([type="checkbox"]).error, select.error'))
+              .map(el => `請檢查「${el.previousElementSibling.textContent.replace('：', '')}」欄位。`)
+          ].filter(Boolean);
+          
+          showCustomAlert('訂單填寫有誤 ⚠️', allErrors.join('\n'));
+        }
+      });
     </script>
 </body>
 </html>
