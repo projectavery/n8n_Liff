@@ -24,19 +24,16 @@
             margin-bottom: 30px;
         }
         .line-profile-section {
-            padding: 20px;
-            border: 1px solid #dee2e6;
-            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
             margin-bottom: 30px;
             background-color: #f8f9fa;
-            display: flex;
-            align-items: center;
-            gap: 20px;
         }
         .line-profile-section h2 {
-            font-size: 1.4em;
+            font-size: 1.1em;
             color: #212529;
-            margin: 0;
+            margin: 0 0 10px 0;
             border-bottom: none;
         }
         .line-profile-details {
@@ -45,14 +42,23 @@
             gap: 15px;
         }
         .line-profile-details img {
-            width: 70px;
-            height: 70px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            border: 3px solid #007bff;
+            border: 2px solid #007bff;
             object-fit: cover;
         }
+        .line-profile-details > div {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .line-profile-details p {
+            margin: 0;
+            font-size: 0.9em;
+            color: #555;
+        }
         .line-profile-details span {
-            font-size: 1.3em;
             font-weight: bold;
             color: #343a40;
         }
@@ -224,12 +230,11 @@
 <body>
     <div class="container">
         <div class="line-profile-section">
-            <img id="line-avatar" src="https://via.placeholder.com/70" alt="大頭貼">
-            <div>
-                <h2>訂購人 LINE 資訊</h2>
-                <div class="line-profile-details">
-                    <span>顯示名稱：</span>
-                    <span id="line-displayName">載入中...</span>
+            <h2>訂購人 LINE 資訊</h2>
+            <div class="line-profile-details">
+                <img id="line-avatar" src="https://via.placeholder.com/40" alt="大頭貼">
+                <div>
+                    <p>顯示名稱：<span id="line-displayName">載入中...</span></p>
                 </div>
             </div>
         </div>
