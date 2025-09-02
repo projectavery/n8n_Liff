@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+    <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>悼念花籃訂購單</title>
@@ -375,8 +376,12 @@
     </div>
 
     <script>
-        let venueAndHallData; // 新增全域變數
-        let productData; // 新增全域變數
+        // !! 請將 'YOUR_WEB_APP_URL_HERE' 替換成您部署後的 Web App URL !!
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyCtoVKniJSIMx0CaGiAytwNLLkufkTksbCUtoNnxfPv8yaTBmSRnFeGMCCBTzC94GE/exec';
+
+        // 新增兩個全域變數來儲存從 Apps Script 載入的資料
+        let venueAndHallData; 
+        let productData; 
 
         async function initializeLiff() {
             try {
@@ -385,6 +390,7 @@
                 });
                 if (liff.isLoggedIn()) {
                     getLineProfile();
+                    loadFormData(); // 在 LIFF 初始化後，才開始載入表單資料
                 } else {
                     liff.login();
                 }
@@ -411,43 +417,44 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeLiff();
-            loadFormData();
         });
 
-        // 新增函式：從 Apps Script 載入所有表單資料
-        function loadFormData() {
-            // 載入場館與廳別資料
-            google.script.run
-                .withSuccessHandler((data) => {
-                    venueAndHallData = data;
-                    populateVenueSelect();
-                })
-                .getVenueAndHallData();
-            
-            // 載入產品資料
-            google.script.run
-                .withSuccessHandler((data) => {
-                    productData = data;
-                    populateProductSelects();
-                })
-                .getProductData();
+        // 使用 fetch 函式從 Apps Script 載入資料
+        async function loadFormData() {
+            try {
+                // 載入場館與廳別資料
+                const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
+                venueAndHallData = await venueResponse.json();
+                populateVenueSelect();
+
+                // 載入產品資料
+                const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
+                productData = await productResponse.json();
+                populateProductSelects();
+
+            } catch (error) {
+                console.error("Failed to load form data:", error);
+                alert("無法載入資料，請稍後再試。");
+            }
         }
 
-        // 修改函式：使用全域變數 venueAndHallData
+        // 填充場館下拉選單
         function populateVenueSelect() {
             const venueSelect = document.getElementById('funeralVenue');
             const hallSelect = document.getElementById('hallName');
             venueSelect.innerHTML = '<option value="" disabled selected>請選擇場館</option>';
-            for (const venue in venueAndHallData) {
-                const option = document.createElement('option');
-                option.value = venue;
-                option.textContent = venue;
-                venueSelect.appendChild(option);
+            if (venueAndHallData) {
+                for (const venue in venueAndHallData) {
+                    const option = document.createElement('option');
+                    option.value = venue;
+                    option.textContent = venue;
+                    venueSelect.appendChild(option);
+                }
             }
             hallSelect.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
         }
 
-        // 修改函式：使用全域變數 venueAndHallData
+        // 根據場館填充廳別下拉選單
         function updateHallSelect() {
             const venueSelect = document.getElementById('funeralVenue');
             const hallSelect = document.getElementById('hallName');
@@ -464,7 +471,7 @@
             }
         }
 
-        // 修改函式：使用全域變數 productData
+        // 填充產品下拉選單
         function populateProductSelects() {
             const products = {
                 'flowerBasket': '花籃',
@@ -475,7 +482,7 @@
                 const category = products[key];
                 const selectElement = document.getElementById(`${key}Style`);
                 selectElement.innerHTML = '<option value="" disabled selected>請選擇樣式</option>';
-                if (productData[category]) {
+                if (productData && productData[category]) {
                     const styles = Object.keys(productData[category]);
                     styles.forEach(style => {
                         const option = document.createElement('option');
@@ -487,7 +494,7 @@
             }
         }
 
-        // 修改函式：使用全域變數 productData
+        // 根據產品類型更新價格和圖片
         function updatePrice(productType) {
             const styleSelect = document.getElementById(`${productType}Style`);
             const priceInput = document.getElementById(`${productType}Price`);
