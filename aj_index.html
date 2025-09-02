@@ -378,44 +378,37 @@
     <script>
         // !! 請將 'YOUR_WEB_APP_URL_HERE' 替換成您部署後的 Web App URL !!
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyCtoVKniJSIMx0CaGiAytwNLLkufkTksbCUtoNnxfPv8yaTBmSRnFeGMCCBTzC94GE/exec";
+        // 請將 '@658byecv' 替換成您自己的官方帳號 ID
+        const LINE_OA_ID = "@658byecv"; 
+        const ADD_FRIEND_URL = `https://line.me/R/ti/p/${LINE_OA_ID}`;
+
 
         // 新增兩個全域變數來儲存從 Apps Script 載入的資料
         let venueAndHallData; 
         let productData; 
 
-        // [重要] 變更部分: 加上 LIFF 環境及好友驗證
         async function initializeLiff() {
             try {
                 await liff.init({
                     liffId: "2008028302-Xe2G97Pw"
                 });
-
-                // 檢查是否在 LIFF 環境中開啟
-                if (!liff.isInClient()) {
-                    showCustomAlert('錯誤', '請透過 LINE 應用程式開啟此頁面。');
-                    return;
-                }
-
-                // 檢查使用者是否已登入
-                if (!liff.isLoggedIn()) {
+                if (liff.isLoggedIn()) {
+                    // 新增：檢查好友狀態
+                    const friendship = await liff.getFriendship();
+                    if (!friendship.friendFlag) {
+                        // 如果不是好友，直接導向加入好友頁面
+                        window.location.href = ADD_FRIEND_URL;
+                    } else {
+                        // 是好友，則繼續執行原有的程式碼
+                        getLineProfile();
+                        loadFormData();
+                    }
+                } else {
                     liff.login();
-                    return;
                 }
-
-                // 檢查使用者是否為好友
-                const friendStatus = await liff.getFriendship();
-                if (!friendStatus.friendFlag) {
-                    showCustomAlert('錯誤', '請先加入好友才能使用此服務。', 'addFriend');
-                    return;
-                }
-
-                // 如果都通過檢查，才開始載入表單資料並顯示用戶資訊
-                getLineProfile();
-                loadFormData();
             } catch (err) {
                 console.error("LIFF initialization failed", err);
                 document.getElementById('line-displayName').textContent = '初始化失敗';
-                showCustomAlert('錯誤', 'LIFF 初始化失敗，請稍後再試。');
             }
         }
 
@@ -453,7 +446,7 @@
 
             } catch (error) {
                 console.error("Failed to load form data:", error);
-                showCustomAlert('錯誤', '無法載入資料，請稍後再試。');
+                alert("無法載入資料，請稍後再試。");
             }
         }
 
@@ -568,8 +561,7 @@
             document.getElementById('totalAmount').value = total;
         }
 
-        // [重要] 變更部分: showCustomAlert 函式現在可以處理「加好友」的邏輯
-        function showCustomAlert(title, message, type = 'default') {
+        function showCustomAlert(title, message) {
             const modal = document.getElementById('customAlert');
             const titleElement = document.getElementById('modalTitle');
             const messageElement = document.getElementById('modalMessage');
@@ -584,15 +576,7 @@
                 modal.style.display = 'none';
             };
 
-            okBtn.onclick = () => {
-                closeModal();
-                if (type === 'addFriend') {
-                    liff.openWindow({
-                        url: 'https://line.me/R/ti/p/@658byecv',
-                        external: true
-                    });
-                }
-            };
+            okBtn.onclick = closeModal;
             closeBtn.onclick = closeModal;
             window.onclick = (event) => {
                 if (event.target === modal) {
@@ -601,8 +585,7 @@
             };
         }
 
-        // [重要] 變更部分: 送出表單到 Webhook
-        document.getElementById('aj_index').addEventListener('submit', async function(event) {
+        document.getElementById('aj_index').addEventListener('submit', function(event) {
             event.preventDefault();
             let isValid = true;
             const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'dedication'];
@@ -656,57 +639,7 @@
             }
 
             if (isValid) {
-                const formData = {
-                    uid: document.getElementById('uid').value,
-                    funeralDate: document.getElementById('funeralDate').value,
-                    funeralVenue: document.getElementById('funeralVenue').value,
-                    hallName: document.getElementById('hallName').value,
-                    deceasedName: document.getElementById('deceasedName').value,
-                    dedication: document.getElementById('dedication').value,
-                    totalAmount: parseFloat(document.getElementById('totalAmount').value),
-                    lastFiveDigits: document.getElementById('lastFiveDigits').value,
-                    products: []
-                };
-
-                const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
-                productTypes.forEach(type => {
-                    const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
-                    if (checkbox.checked) {
-                        const style = document.getElementById(`${type}Style`).value;
-                        const price = parseFloat(document.getElementById(`${type}Price`).value);
-                        const qty = parseInt(document.getElementById(`${type}Qty`).value);
-                        formData.products.push({
-                            type: type,
-                            style: style,
-                            price: price,
-                            quantity: qty
-                        });
-                    }
-                });
-
-                try {
-                    const webhookUrl = "https://projectboy-n8n-free.hf.space/webhook/AJ_buy";
-                    const response = await fetch(webhookUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    });
-
-                    if (response.ok) {
-                        showCustomAlert('訂單送出成功 🎉', '您的訂單已送出，稍後將有專人與您聯繫。');
-                        setTimeout(() => {
-                            liff.closeWindow();
-                        }, 2000); 
-                    } else {
-                        showCustomAlert('送出失敗 ❌', '訂單送出失敗，請再試一次。');
-                    }
-                } catch (error) {
-                    console.error('Error submitting form:', error);
-                    showCustomAlert('送出失敗 ❌', '網路連線有問題，請檢查後再試。');
-                }
-
+                showCustomAlert('訂單送出成功 🎉', '您的訂單已送出，稍後將有專人與您聯繫。');
             } else {
                 const allErrors = [
                     ...new Set(errorMessages),
