@@ -375,26 +375,8 @@
     </div>
 
     <script>
-        const venueAndHallData = {
-            '台北市立第一殯儀館': ['一館景行廳', '一館景福廳', '一館景仰廳', '一館景德廳', '一館景明廳', '一館景愛廳'],
-            '台北市立第二殯儀館': ['二館景行廳', '二館景福廳', '二館景仰廳'],
-            '新北巿立殯儀館': ['甲級廳', '乙級廳', '丙級廳']
-        };
-
-        const productData = {
-            '花籃': {
-                '一般花籃': { price: 2000, photoUrl: 'https://cdn.pixabay.com/photo/2016/06/18/17/42/image-1465223_1280.jpg' },
-                '特級花籃': { price: 3500, photoUrl: 'https://cdn.pixabay.com/photo/2017/08/04/18/59/flowers-2581691_1280.jpg' }
-            },
-            '籃花': {
-                '一般籃花': { price: 1500, photoUrl: 'https://cdn.pixabay.com/photo/2018/05/17/17/30/bouquet-3408991_1280.jpg' },
-                '特級籃花': { price: 2500, photoUrl: 'https://cdn.pixabay.com/photo/2016/03/06/07/28/bouquet-1239617_1280.jpg' }
-            },
-            '水果籃': {
-                '普通水果籃': { price: 1000, photoUrl: 'https://cdn.pixabay.com/photo/2018/05/17/09/27/fruits-3407897_1280.jpg' },
-                '豪華水果籃': { price: 2200, photoUrl: 'https://cdn.pixabay.com/photo/2016/09/17/08/42/fruit-1675762_1280.jpg' }
-            }
-        };
+        let venueAndHallData; // 新增全域變數
+        let productData; // 新增全域變數
 
         async function initializeLiff() {
             try {
@@ -429,10 +411,29 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeLiff();
-            populateVenueSelect();
-            populateProductSelects();
+            loadFormData();
         });
 
+        // 新增函式：從 Apps Script 載入所有表單資料
+        function loadFormData() {
+            // 載入場館與廳別資料
+            google.script.run
+                .withSuccessHandler((data) => {
+                    venueAndHallData = data;
+                    populateVenueSelect();
+                })
+                .getVenueAndHallData();
+            
+            // 載入產品資料
+            google.script.run
+                .withSuccessHandler((data) => {
+                    productData = data;
+                    populateProductSelects();
+                })
+                .getProductData();
+        }
+
+        // 修改函式：使用全域變數 venueAndHallData
         function populateVenueSelect() {
             const venueSelect = document.getElementById('funeralVenue');
             const hallSelect = document.getElementById('hallName');
@@ -446,6 +447,7 @@
             hallSelect.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
         }
 
+        // 修改函式：使用全域變數 venueAndHallData
         function updateHallSelect() {
             const venueSelect = document.getElementById('funeralVenue');
             const hallSelect = document.getElementById('hallName');
@@ -462,6 +464,7 @@
             }
         }
 
+        // 修改函式：使用全域變數 productData
         function populateProductSelects() {
             const products = {
                 'flowerBasket': '花籃',
@@ -484,6 +487,7 @@
             }
         }
 
+        // 修改函式：使用全域變數 productData
         function updatePrice(productType) {
             const styleSelect = document.getElementById(`${productType}Style`);
             const priceInput = document.getElementById(`${productType}Price`);
