@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>悼念花籃訂購單</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .line-profile-section {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            background-color: #fafafa;
+        }
+        .line-profile-section h2 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .line-profile-details {
+            display: flex;
+            align-items: center;
+        }
+        .line-profile-details img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            border: 2px solid #ddd;
+            object-fit: cover;
+        }
+        .line-profile-details span {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+        h2 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="date"], select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        select.loading {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+            color: #6c757d;
+        }
+        input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .checkbox-group label {
+            display: inline-block;
+            margin-right: 20px;
+            font-weight: normal;
+        }
+        .product-details {
+            display: none;
+            border-left: 3px solid #007bff;
+            padding-left: 15px;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            padding-top: 10px;
+            padding-bottom: 5px;
+        }
+        .product-details.active {
+            display: block;
+        }
+        .product-details .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        .product-details .form-row > div {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        .product-details .form-row .price-box {
+            background-color: #e9ecef;
+            color: #495057;
+            border-color: #ced4da;
+            cursor: not-allowed;
+        }
+        .total-amount input {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+            font-weight: bold;
+            color: #495057;
+        }
+        .submit-button {
+            width: 100%;
+            padding: 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .submit-button:hover {
+            background-color: #218838;
+        }
+        .error {
+            border-color: #dc3545 !important;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 50px;
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            text-align: center;
+        }
+        .modal-header h2 {
+            border-bottom: none;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .modal-body p {
+            font-size: 1.1em;
+            color: #555;
+            white-space: pre-line;
+        }
+        .modal-footer {
+            margin-top: 20px;
+        }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .product-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="line-profile-section">
+            <h2>訂購人 LINE 資訊</h2>
+            <div class="line-profile-details">
+                <img id="line-avatar" src="https://via.placeholder.com/60" alt="大頭貼">
+                <div>
+                    <span>顯示名稱：</span>
+                    <span id="line-displayName">載入中...</span>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="uid" name="uid">
+        <form id="aj_index">
+            <div class="section">
+                <h2>告別式資訊</h2>
+                <label for="funeralDate">告別式日期</label>
+                <input type="date" id="funeralDate" name="funeralDate" required>
+
+                <label for="funeralVenue">告別式場館</label>
+                <select id="funeralVenue" name="funeralVenue" required onchange="updateHallSelect()">
+                    <option value="" disabled selected>請選擇場館</option>
+                </select>
+
+                <label for="hallName">廳別</label>
+                <select id="hallName" name="hallName" required>
+                    <option value="" disabled selected>請先選擇場館</option>
+                </select>
+
+                <label for="deceasedName">亡者姓名</label>
+                <input type="text" id="deceasedName" name="deceasedName" required>
+
+                <label for="dedication">落款</label>
+                <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
+            </div>
+
+            <hr>
+
+            <div class="section">
+                <h2>商品類別</h2>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="checkboxFlowerBasket" name="productType" value="flowerBasket"> 花籃
+                    </label>
+                    <label>
+                        <input type="checkbox" id="checkboxWreath" name="productType" value="wreath"> 籃花
+                    </label>
+                    <label>
+                        <input type="checkbox" id="checkboxFruitBasket" name="productType" value="fruitBasket"> 水果籃
+                    </label>
+                </div>
+
+                <div id="flowerBasketDetails" class="product-details">
+                    <h3>花籃</h3>
+                    <img id="flowerBasketImage" src="" alt="花籃照片" class="product-image" style="display: none;">
+                    <div class="form-row">
+                        <div>
+                            <label for="flowerBasketStyle">樣式</label>
+                            <select id="flowerBasketStyle" name="flowerBasketStyle" onchange="updatePrice('flowerBasket')">
+                                <option value="" disabled selected>請選擇樣式</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="flowerBasketPrice">單價</label>
+                            <input type="text" id="flowerBasketPrice" class="price-box" value="0" readonly>
+                        </div>
+                        <div>
+                            <label for="flowerBasketQty">數量</label>
+                            <input type="number" id="flowerBasketQty" name="flowerBasketQty" min="0" value="0" oninput="calculateTotal()">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="wreathDetails" class="product-details">
+                    <h3>籃花</h3>
+                    <img id="wreathImage" src="" alt="籃花照片" class="product-image" style="display: none;">
+                    <div class="form-row">
+                        <div>
+                            <label for="wreathStyle">樣式</label>
+                            <select id="wreathStyle" name="wreathStyle" onchange="updatePrice('wreath')">
+                                <option value="" disabled selected>請選擇樣式</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="wreathPrice">單價</label>
+                            <input type="text" id="wreathPrice" class="price-box" value="0" readonly>
+                        </div>
+                        <div>
+                            <label for="wreathQty">數量</label>
+                            <input type="number" id="wreathQty" name="wreathQty" min="0" value="0" oninput="calculateTotal()">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="fruitBasketDetails" class="product-details">
+                    <h3>水果籃</h3>
+                    <img id="fruitBasketImage" src="" alt="水果籃照片" class="product-image" style="display: none;">
+                    <div class="form-row">
+                        <div>
+                            <label for="fruitBasketStyle">樣式</label>
+                            <select id="fruitBasketStyle" name="fruitBasketStyle" onchange="updatePrice('fruitBasket')">
+                                <option value="" disabled selected>請選擇樣式</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="fruitBasketPrice">單價</label>
+                            <input type="text" id="fruitBasketPrice" class="price-box" value="0" readonly>
+                        </div>
+                        <div>
+                            <label for="fruitBasketQty">數量</label>
+                            <input type="number" id="fruitBasketQty" name="fruitBasketQty" min="0" value="0" oninput="calculateTotal()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2> </h2>
+                <div class="total-amount">
+                    <label for="totalAmount">合計金額</label>
+                    <input type="text" id="totalAmount" value="0" readonly>
+                </div>
+
+                <label for="lastFiveDigits">轉帳後五碼</label>
+                <input type="text" id="lastFiveDigits" name="lastFiveDigits" maxlength="5" required>
+            </div>
+
+            <button type="submit" class="submit-button">送出訂單</button>
+        </form>
+    </div>
+
+    <div id="customAlert" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <div class="modal-header">
+                <h2 id="modalTitle"></h2>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage"></p>
+              </div>
+            <div class="modal-footer">
+                <button id="modalOkBtn" class="submit-button">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 靜態資料 - 取代 Apps Script 讀取
+        const venueAndHallData = {
+            '台北市立第一殯儀館': ['一館景行廳', '一館景福廳', '一館景仰廳', '一館景德廳', '一館景明廳', '一館景愛廳'],
+            '台北市立第二殯儀館': ['二館景行廳', '二館景福廳', '二館景仰廳'],
+            '新北巿立殯儀館': ['甲級廳', '乙級廳', '丙級廳']
+        };
+
+        const productData = {
+            '花籃': {
+                '一般花籃': { price: 2000, photoUrl: 'https://cdn.pixabay.com/photo/2016/06/18/17/42/image-1465223_1280.jpg' },
+                '特級花籃': { price: 3500, photoUrl: 'https://cdn.pixabay.com/photo/2017/08/04/18/59/flowers-2581691_1280.jpg' }
+            },
+            '籃花': {
+                '一般籃花': { price: 1500, photoUrl: 'https://cdn.pixabay.com/photo/2018/05/17/17/30/bouquet-3408991_1280.jpg' },
+                '特級籃花': { price: 2500, photoUrl: 'https://cdn.pixabay.com/photo/2016/03/06/07/28/bouquet-1239617_1280.jpg' }
+            },
+            '水果籃': {
+                '普通水果籃': { price: 1000, photoUrl: 'https://cdn.pixabay.com/photo/2018/05/17/09/27/fruits-3407897_1280.jpg' },
+                '豪華水果籃': { price: 2200, photoUrl: 'https://cdn.pixabay.com/photo/2016/09/17/08/42/fruit-1675762_1280.jpg' }
+            }
+        };
+
+        // 初始化 LIFF
+        async function initializeLiff() {
+            try {
+                await liff.init({
+                    liffId: '2008028302-Xe2G97Pw' // 請替換成你的 LIFF ID
+                });
+                if (liff.isLoggedIn()) {
+                    getLineProfile();
+                } else {
+                    liff.login();
+                }
+            } catch (err) {
+                console.error("LIFF initialization failed", err);
+                document.getElementById('line-displayName').textContent = '初始化失敗';
+            }
+        }
+
+        // 取得 LINE 用戶資訊
+        async function getLineProfile() {
+            try {
+                const profile = await liff.getProfile();
+                const displayName = profile.displayName;
+                const pictureUrl = profile.pictureUrl;
+                const userId = profile.userId;
+
+                document.getElementById('line-avatar').src = pictureUrl;
+                document.getElementById('line-displayName').textContent = displayName;
+                document.getElementById('uid').value = userId;
+
+            } catch (err) {
+                console.error("Failed to get LINE profile", err);
+                document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
+            }
+        }
+
+        // 頁面載入時，直接使用靜態資料
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeLiff();
+            populateVenueSelect();
+            populateProductSelects();
+        });
+
+        // 填充場館下拉選單
+        function populateVenueSelect() {
+            const venueSelect = document.getElementById('funeralVenue');
+            const hallSelect = document.getElementById('hallName');
+            
+            venueSelect.innerHTML = '<option value="" disabled selected>請選擇場館</option>';
+            for (const venue in venueAndHallData) {
+                const option = document.createElement('option');
+                option.value = venue;
+                option.textContent = venue;
+                venueSelect.appendChild(option);
+            }
+            hallSelect.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
+        }
+
+        // 根據選擇的場館，動態更新廳別下拉選單
+        function updateHallSelect() {
+            const venueSelect = document.getElementById('funeralVenue');
+            const hallSelect = document.getElementById('hallName');
+            const selectedVenue = venueSelect.value;
+            
+            hallSelect.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
+
+            if (selectedVenue && venueAndHallData[selectedVenue]) {
+                const halls = venueAndHallData[selectedVenue];
+                halls.forEach(hall => {
+                    const option = document.createElement('option');
+                    option.value = hall;
+                    option.textContent = hall;
+                    hallSelect.appendChild(option);
+                });
+            }
+        }
+
+        // 填充產品樣式下拉選單
+        function populateProductSelects() {
+            const flowerBasketSelect = document.getElementById('flowerBasketStyle');
+            const wreathSelect = document.getElementById('wreathStyle');
+            const fruitBasketSelect = document.getElementById('fruitBasketStyle');
+
+            const addOptions = (selectElement, category) => {
+                if (productData[category]) {
+                    const sortedStyles = Object.keys(productData[category]).sort((a, b) => {
+                        const numA = parseInt(a.replace(/\D/g, ''));
+                        const numB = parseInt(b.replace(/\D/g, ''));
+                        return numA - numB;
+                    });
+                    
+                    sortedStyles.forEach(style => {
+                        const option = document.createElement('option');
+                        option.value = style;
+                        option.textContent = `${style}`;
+                        selectElement.appendChild(option);
+                    });
+                }
+            };
+
+            flowerBasketSelect.innerHTML = '<option value="" disabled selected>請選擇樣式</option>';
+            addOptions(flowerBasketSelect, '花籃');
+            
+            wreathSelect.innerHTML = '<option value="" disabled selected>請選擇樣式</option>';
+            addOptions(wreathSelect, '籃花');
+
+            fruitBasketSelect.innerHTML = '<option value="" disabled selected>請選擇樣式</option>';
+            addOptions(fruitBasketSelect, '水果籃');
+        }
+
+        // 根據下拉選單選擇更新單價和照片
+        function updatePrice(productType) {
+            const styleSelect = document.getElementById(`${productType}Style`);
+            const priceInput = document.getElementById(`${productType}Price`);
+            const imageElement = document.getElementById(`${productType}Image`);
+
+            const selectedStyle = styleSelect.value;
+            
+            let category;
+            if (productType === 'flowerBasket') category = '花籃';
+            else if (productType === 'wreath') category = '籃花';
+            else if (productType === 'fruitBasket') category = '水果籃';
+            
+            if (selectedStyle && productData[category] && productData[category][selectedStyle]) {
+                const data = productData[category][selectedStyle];
+                priceInput.value = data.price;
+                imageElement.src = data.photoUrl; 
+                imageElement.style.display = 'block'; 
+            } else {
+                priceInput.value = 0;
+                imageElement.src = ''; 
+                imageElement.style.display = 'none'; 
+            }
+            calculateTotal();
+        }
+        
+        // 監聽 checkbox 的變化
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="productType"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (event) => {
+                const productType = event.target.value;
+                const detailsElement = document.getElementById(`${productType}Details`);
+                const imageElement = document.getElementById(`${productType}Image`);
+                if (event.target.checked) {
+                    detailsElement.classList.add('active');
+                } else {
+                    detailsElement.classList.remove('active');
+                    document.getElementById(`${productType}Style`).selectedIndex = 0;
+                    document.getElementById(`${productType}Price`).value = 0;
+                    document.getElementById(`${productType}Qty`).value = 0;
+                    imageElement.src = '';
+                    imageElement.style.display = 'none';
+                }
+                calculateTotal();
+            });
+        });
+
+        // 計算總金額
+        function calculateTotal() {
+            let total = 0;
+            
+            const flowerBasketQty = parseInt(document.getElementById('flowerBasketQty').value) || 0;
+            const flowerBasketPrice = parseFloat(document.getElementById('flowerBasketPrice').value) || 0;
+            total += flowerBasketQty * flowerBasketPrice;
+            
+            const wreathQty = parseInt(document.getElementById('wreathQty').value) || 0;
+            const wreathPrice = parseFloat(document.getElementById('wreathPrice').value) || 0;
+            total += wreathQty * wreathPrice;
+            
+            const fruitBasketQty = parseInt(document.getElementById('fruitBasketQty').value) || 0;
+            const fruitBasketPrice = parseFloat(document.getElementById('fruitBasketPrice').value) || 0;
+            total += fruitBasketQty * fruitBasketPrice;
+            
+            document.getElementById('totalAmount').value = total;
+        }
+
+        // 新增自訂彈窗函式
+        function showCustomAlert(message) {
+            const modal = document.getElementById('customAlert');
+            const messageElement = document.getElementById('modalMessage');
+            const okBtn = document.getElementById('modalOkBtn');
+            const closeBtn = document.querySelector('.close-btn');
+
+            messageElement.textContent = message;
+            modal.style.display = 'block';
+
+            const closeModal = () => {
+                modal.style.display = 'none';
+            };
+
+            okBtn.onclick = closeModal;
+            closeBtn.onclick = closeModal;
+
+            window.onclick = (event) => {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            };
+        }
+        
+        // 表單驗證
+        document.getElementById('aj_index').addEventListener('submit', function(event) {
+            event.preventDefault(); // 阻止表單預設提交
+
+            let isValid = true;
+            const requiredInputs = document.querySelectorAll('#funeralDate, #deceasedName, #dedication, #funeralVenue, #hallName');
+            const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
+            const totalAmountInput = document.getElementById('totalAmount');
+            const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+            let errorMessages = [];
+
+            // 移除所有錯誤提示
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+
+            // 驗證基本欄位
+            requiredInputs.forEach(input => {
+                if (!input.value) {
+                    input.classList.add('error');
+                    isValid = false;
+                    errorMessages.push('請檢查所有必填欄位！');
+                }
+            });
+
+            // 驗證產品區塊
+            productTypes.forEach(type => {
+                const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
+                if (checkbox.checked) {
+                    const styleSelect = document.getElementById(`${type}Style`);
+                    const qtyInput = document.getElementById(`${type}Qty`);
+                    const priceInput = document.getElementById(`${type}Price`);
+
+                    const priceValue = parseFloat(priceInput.value);
+                    const qtyValue = parseInt(qtyInput.value);
+                    
+                    const productNames = { 'flowerBasket': '花籃', 'wreath': '籃花', 'fruitBasket': '水果籃' };
+                    const productName = productNames[type];
+
+                    if (!styleSelect.value) {
+                        styleSelect.classList.add('error');
+                        isValid = false;
+                        errorMessages.push(`${productName}樣式未選取。`);
+                    } else if (qtyValue === 0) {
+                        qtyInput.classList.add('error');
+                        isValid = false;
+                        errorMessages.push(`${productName}數量未輸入或為零。`);
+                    }
+                }
+            });
+
+            // 驗證轉帳後五碼
+            if (lastFiveDigitsInput.value.trim().length !== 5) {
+                lastFiveDigitsInput.classList.add('error');
+                isValid = false;
+                errorMessages.push('轉帳後五碼必須為五位數字。');
+            }
+
+            // 驗證合計金額是否為0
+            if (parseFloat(totalAmountInput.value) === 0) {
+                isValid = false;
+                errorMessages.push('合計金額為0，請至少選擇一項產品或確認數量。');
+            }
+            
+            // 整理並顯示錯誤訊息
+            if (isValid) {
+                showCustomAlert('訂單已成功送出！');
+            } else {
+                const uniqueErrors = [...new Set(errorMessages)];
+                showCustomAlert('請檢查以下錯誤：\n' + uniqueErrors.join('\n'));
+            }
+        });
+    </script>
+</body>
+</html>
