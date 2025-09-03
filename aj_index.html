@@ -226,6 +226,11 @@
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+        .loading-select {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -416,6 +421,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            setFormLoadingState(true);
             initializeLiff();
         });
 
@@ -431,13 +437,35 @@
                 const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
                 productData = await productResponse.json();
                 populateProductSelects();
-
+                
+                setFormLoadingState(false); // 資料載入完成後，恢復正常狀態
             } catch (error) {
                 console.error("Failed to load form data:", error);
                 alert("無法載入資料，請稍後再試。");
+                setFormLoadingState(false); // 即使出錯也恢復，避免表單永遠被鎖定
             }
         }
 
+        // 新增這個函式來控制所有相關下拉選單的狀態
+        function setFormLoadingState(isLoading) {
+            const selectElements = document.querySelectorAll('select');
+            selectElements.forEach(select => {
+                if (isLoading) {
+                    select.disabled = true;
+                    select.classList.add('loading-select');
+                    // 設定提示文字
+                    if (select.id === 'funeralVenue') {
+                        select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
+                    } else {
+                        select.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
+                    }
+                } else {
+                    select.disabled = false;
+                    select.classList.remove('loading-select');
+                }
+            });
+        }
+        
         // 填充場館下拉選單
         function populateVenueSelect() {
             const venueSelect = document.getElementById('funeralVenue');
@@ -641,3 +669,4 @@
     </script>
 </body>
 </html>
+
