@@ -645,7 +645,7 @@ function generateOrderNumber() {
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
     const random = String(Math.floor(Math.random() * 900) + 100);
-    return `O${year}${month}${day}-${hours}${minutes}${seconds}-${random}`;
+    return `AJ${year}${month}${day}-${hours}${minutes}${seconds}-${random}`;
 }
 
 document.getElementById('aj_index').addEventListener('submit', async function(event) {
@@ -779,6 +779,7 @@ document.getElementById('aj_index').addEventListener('submit', async function(ev
     </script>
 </body>
 </html>
+
 
 
 
