@@ -251,7 +251,7 @@
         </div>
 
         <input type="hidden" id="uid" name="uid">
-        <form id="aj_index">
+        <form id="aj_index" action="https://script.google.com/macros/s/AKfycbyCtoVKniJSIMx0CaGiAytwNLLkufkTksbCUtoNnxfPv8yaTBmSRnFeGMCCBTzC94GE/exec" method="POST">
             <div class="section">
                 <h2>告別式資訊</h2>
                 <label for="funeralDate">告別式日期</label>
@@ -624,70 +624,118 @@
         }
 
         document.getElementById('aj_index').addEventListener('submit', function(event) {
-            event.preventDefault();
-            let isValid = true;
-            const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'dedication'];
-            const errorMessages = [];
-            const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
+    event.preventDefault();
+    let isValid = true;
+    const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'dedication', 'lastFiveDigits'];
+    const errorMessages = [];
+    const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
 
-            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
 
-            requiredFields.forEach(id => {
-                const input = document.getElementById(id);
-                if (!input.value) {
-                    input.classList.add('error');
+    // Basic validation
+    requiredFields.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input.value.trim()) {
+            input.classList.add('error');
+            isValid = false;
+        }
+    });
+
+    if (!hasSelectedProduct) {
+        errorMessages.push('請至少勾選一項商品類別。');
+        isValid = false;
+    } else {
+        const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+        productTypes.forEach(type => {
+            const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            if (checkbox.checked) {
+                const styleSelect = document.getElementById(`${type}Style`);
+                const qtyInput = document.getElementById(`${type}Qty`);
+                if (!styleSelect.value) {
+                    styleSelect.classList.add('error');
                     isValid = false;
+                    errorMessages.push(`請選擇${styleSelect.previousElementSibling.textContent}的樣式。`);
                 }
-            });
-
-            if (!hasSelectedProduct) {
-                errorMessages.push('請至少勾選一項商品類別。');
-            } else {
-                const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
-                productTypes.forEach(type => {
-                    const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
-                    if (checkbox.checked) {
-                        const styleSelect = document.getElementById(`${type}Style`);
-                        const qtyInput = document.getElementById(`${type}Qty`);
-                        if (!styleSelect.value) {
-                            styleSelect.classList.add('error');
-                            isValid = false;
-                            errorMessages.push(`請選擇${styleSelect.previousElementSibling.textContent}的樣式。`);
-                        }
-                        if (parseInt(qtyInput.value) <= 0) {
-                            qtyInput.classList.add('error');
-                            isValid = false;
-                            errorMessages.push(`請輸入${qtyInput.previousElementSibling.textContent}的數量。`);
-                        }
-                    }
-                });
-            }
-
-            const totalAmount = parseFloat(document.getElementById('totalAmount').value);
-            if (totalAmount === 0 && hasSelectedProduct) {
-                isValid = false;
-                errorMessages.push('合計金額為0，請確認您的選擇。');
-            }
-            
-            const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
-            if (lastFiveDigitsInput.value.trim().length !== 5) {
-                lastFiveDigitsInput.classList.add('error');
-                isValid = false;
-                errorMessages.push('轉帳後五碼必須為五位數字。');
-            }
-
-            if (isValid) {
-                showCustomAlert('訂單送出成功 🎉', '您的訂單已送出，稍後將有專人與您聯繫。');
-            } else {
-                const allErrors = [
-                    ...new Set(errorMessages),
-                    ...Array.from(document.querySelectorAll('input:not([type="checkbox"]).error, select.error'))
-                        .map(el => `請檢查「${el.previousElementSibling.textContent.replace('：', '')}」欄位。`)
-                ].filter(Boolean);
-                
-                showCustomAlert('訂單填寫有誤 ⚠️', allErrors.join('\n'));
+                if (parseInt(qtyInput.value) <= 0) {
+                    qtyInput.classList.add('error');
+                    isValid = false;
+                    errorMessages.push(`請輸入${qtyInput.previousElementSibling.textContent}的數量。`);
+                }
             }
         });
+    }
+
+    const totalAmount = parseFloat(document.getElementById('totalAmount').value);
+    if (totalAmount === 0 && hasSelectedProduct) {
+        isValid = false;
+        errorMessages.push('合計金額為0，請確認您的選擇。');
+    }
+
+    const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
+    if (lastFiveDigitsInput.value.trim().length !== 5) {
+        lastFiveDigitsInput.classList.add('error');
+        isValid = false;
+        errorMessages.push('轉帳後五碼必須為五位數字。');
+    }
+
+    if (isValid) {
+        const form = event.target;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // Add additional data not in the form
+        data.displayName = document.getElementById('line-displayName').textContent;
+        data.totalAmount = document.getElementById('totalAmount').value;
+        
+        // Remove product details if checkbox is not checked
+        const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+        productTypes.forEach(type => {
+            const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            if (!checkbox.checked) {
+                delete data[`${type}Style`];
+                delete data[`${type}Price`];
+                delete data[`${type}Qty`];
+            } else {
+                // Ensure price is included even if user didn't select it manually
+                data[`${type}Price`] = document.getElementById(`${type}Price`).value;
+            }
+        });
+
+        // Use the hardcoded WEB_APP_URL for submission
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.text())
+        .then(result => {
+            if (result === 'Success') {
+                showCustomAlert('訂單送出成功 🎉', '您的訂單已送出，稍後將有專人與您聯繫。');
+                if (liff.isInClient()) {
+                    // Automatically close the LIFF app after successful submission
+                    liff.closeWindow();
+                }
+            } else {
+                showCustomAlert('送出失敗 😥', '提交時發生錯誤，請稍後再試。');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showCustomAlert('送出失敗 😥', '網路連線有問題，請檢查您的連線。');
+        });
+    } else {
+        const allErrors = [
+            ...new Set(errorMessages),
+            ...Array.from(document.querySelectorAll('input:not([type="checkbox"]).error, select.error'))
+                .map(el => `請檢查「${el.previousElementSibling.textContent.replace('：', '')}」欄位。`)
+        ].filter(Boolean);
+        
+        showCustomAlert('訂單填寫有誤 ⚠️', allErrors.join('\n'));
+    }
+});
     </script>
 </body>
 </html>
+
