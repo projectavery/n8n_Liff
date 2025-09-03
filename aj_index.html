@@ -257,6 +257,12 @@
                 <label for="funeralDate">告別式日期</label>
                 <input type="date" id="funeralDate" name="funeralDate" required>
 
+                <label for="deceasedName">亡者姓名</label>
+                <input type="text" id="deceasedName" name="deceasedName" required placeholder="請輸入亡者姓名">
+
+                <label for="dedication">落款</label>
+                <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
+                
                 <label for="funeralVenue">告別式場館</label>
                 <select id="funeralVenue" name="funeralVenue" required onchange="updateHallSelect()">
                     <option value="" disabled selected>請選擇場館</option>
@@ -266,12 +272,6 @@
                 <select id="hallName" name="hallName" required>
                     <option value="" disabled selected>請選擇廳別</option>
                 </select>
-
-                <label for="deceasedName">亡者姓名</label>
-                <input type="text" id="deceasedName" name="deceasedName" required placeholder="請輸入亡者姓名">
-
-                <label for="dedication">落款</label>
-                <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
             </div>
 
             <hr>
@@ -738,6 +738,7 @@
     </script>
 </body>
 </html>
+
 
 
 
