@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>悼念花籃訂單查詢</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #555;
+        }
+        .form-section, .results-section {
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .input-group input[type="radio"] {
+            margin-right: 10px;
+        }
+        .input-group label {
+            width: 120px;
+            font-weight: bold;
+        }
+        .input-group input[type="text"] {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .input-group input:disabled {
+            background-color: #e9e9e9;
+            cursor: not-allowed;
+        }
+        .button-group {
+            text-align: center;
+            margin-top: 20px;
+        }
+        #search-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #search-button:hover {
+            background-color: #0056b3;
+        }
+        .result-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        .result-row label {
+            width: 120px;
+            font-weight: bold;
+        }
+        .result-row span {
+            flex-grow: 1;
+        }
+        .product-section {
+            margin-top: 25px;
+        }
+        .product-section h3 {
+            margin-bottom: 10px;
+        }
+        .divider-line {
+            border: none;
+            height: 1px;
+            background-color: #ccc;
+            margin: 15px 0;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>悼念花籃訂單查詢</h1>
+        
+        <div class="form-section">
+            <div class="input-group">
+                <input type="radio" id="byName" name="queryType" value="byName" checked>
+                <label for="byName">亡者姓名</label>
+                <input type="radio" id="byOrder" name="queryType" value="byOrder">
+                <label for="byOrder">訂單號碼</label>
+            </div>
+            <div class="input-group">
+                <label for="queryInput">查詢條件</label>
+                <input type="text" id="queryInput" placeholder="請輸入亡者姓名或訂單號碼">
+            </div>
+            <div class="button-group">
+                <button id="search-button">查詢</button>
+            </div>
+        </div>
+
+        <div id="results-display" class="results-section hidden">
+            <div class="result-row">
+                <label>Line訂購人</label>
+                <span id="lineUser"></span>
+            </div>
+            <div class="result-row">
+                <label>訂單號碼</label>
+                <span id="orderNumber"></span>
+            </div>
+            <div class="result-row">
+                <label>告別式日期</label>
+                <span id="funeralDate"></span>
+            </div>
+            <div class="result-row">
+                <label>亡者姓名</label>
+                <span id="deceasedName"></span>
+            </div>
+            <div class="result-row">
+                <label>場館</label>
+                <span id="venue"></span>
+            </div>
+            <div class="result-row">
+                <label>廳別</label>
+                <span id="hall"></span>
+            </div>
+            <div class="result-row">
+                <label>落款</label>
+                <span id="note"></span>
+            </div>
+            
+            <hr class="divider-line">
+            
+            <div id="product-container">
+                </div>
+
+            <hr class="divider-line">
+
+            <div class="result-row">
+                <label>轉帳後五碼</label>
+                <span id="lastFiveDigits"></span>
+            </div>
+            <div class="result-row">
+                <label>合計金額</label>
+                <span id="totalAmount"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqSMStYRtC8OFuN3W8jC9Y_3NYtsZWSUPaEkXfyA6qGNrRe0-CGMeTPnZqNO9wYDKj/exec"; // <-- 將此處替換成您的 API 網址
+            const queryInput = document.getElementById('queryInput');
+            const searchButton = document.getElementById('search-button');
+            const resultsDisplay = document.getElementById('results-display');
+            const productContainer = document.getElementById('product-container');
+
+            searchButton.addEventListener('click', async () => {
+                const query = queryInput.value.trim();
+                if (query === '') {
+                    alert('請輸入亡者姓名或訂單號碼！');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${SCRIPT_URL}?dataType=orderQuery&query=${encodeURIComponent(query)}`);
+                    const result = await response.json();
+
+                    if (response.ok && Object.keys(result).length > 0 && !result.error) {
+                        showResults(result);
+                    } else {
+                        alert('查無資料，請確認輸入正確。');
+                        resultsDisplay.classList.add('hidden');
+                    }
+                } catch (error) {
+                    alert('查詢失敗：' + error.message);
+                    resultsDisplay.classList.add('hidden');
+                }
+            });
+
+            function showResults(result) {
+                document.getElementById('lineUser').textContent = result.lineUser || '無';
+                document.getElementById('orderNumber').textContent = result.orderNumber || '無';
+                document.getElementById('funeralDate').textContent = result.funeralDate || '無';
+                document.getElementById('deceasedName').textContent = result.deceasedName || '無';
+                document.getElementById('venue').textContent = result.venue || '無';
+                document.getElementById('hall').textContent = result.hall || '無';
+                document.getElementById('note').textContent = result.note || '無';
+                document.getElementById('lastFiveDigits').textContent = result.lastFiveDigits || '無';
+                document.getElementById('totalAmount').textContent = result.totalAmount || '無';
+
+                // 清空舊的產品資料
+                productContainer.innerHTML = '';
+                
+                // 動態生成產品資訊
+                if (result.basket) {
+                    addProductSection('花籃', result.basket);
+                }
+                if (result.bunch) {
+                    addProductSection('籃花', result.bunch);
+                }
+                if (result.fruit) {
+                    addProductSection('水果籃', result.fruit);
+                }
+                
+                resultsDisplay.classList.remove('hidden');
+            }
+
+            function addProductSection(title, data) {
+                const section = document.createElement('div');
+                section.classList.add('product-section');
+                section.innerHTML = `
+                    <h3>${title}</h3>
+                    <div class="result-row">
+                        <label>款式</label>
+                        <span>${data.style || '無'}</span>
+                    </div>
+                    <div class="result-row">
+                        <label>單價</label>
+                        <span>${data.price || '無'}</span>
+                    </div>
+                    <div class="result-row">
+                        <label>數量</label>
+                        <span>${data.quantity || '無'}</span>
+                    </div>
+                `;
+                productContainer.appendChild(section);
+            }
+        });
+    </script>
+</body>
+</html>
