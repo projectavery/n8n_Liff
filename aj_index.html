@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-2</title>
+    <title>悼念花籃訂購單-3</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -80,7 +80,7 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #495057;
-            font-size: 1.2em; /* 新增此行 */
+            font-size: 1.2em;
         }
         input[type="text"], input[type="date"], input[type="number"], select {
             width: 100%;
@@ -90,30 +90,32 @@
             border-radius: 8px;
             box-sizing: border-box;
             transition: border-color 0.3s, box-shadow 0.3s;
-            font-size: 1.2em; /* 新增此行 */
+            font-size: 1.2em;
         }
         input:focus, select:focus {
             outline: none;
             border-color: #007bff;
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
         }
-        .checkbox-group {
+        .checkbox-group, .radio-group {
             display: flex;
             flex-wrap: wrap;
             gap: 25px;
             margin-bottom: 20px;
         }
-        .checkbox-group label {
+        .checkbox-group label, .radio-group label {
             display: flex;
             align-items: center;
             gap: 8px;
             font-weight: normal;
+            font-size: 1em;
+            cursor: pointer;
         }
-        .checkbox-group input[type="checkbox"] {
+        .checkbox-group input[type="checkbox"], .radio-group input[type="radio"] {
             margin-bottom: 0;
             width: auto;
         }
-        .product-details {
+        .product-details, .details-section {
             display: none;
             border-left: 4px solid #28a745;
             padding-left: 20px;
@@ -197,8 +199,10 @@
             animation: fadeIn 0.3s ease-out;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0;
+            transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0);
+            }
         }
         .modal-header h2 {
             font-size: 1.8em;
@@ -238,30 +242,13 @@
             color: #6c757d;
             cursor: not-allowed;
         }
-        .radio-group {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .radio-group label {
-            font-weight: normal;
-            font-size: 1em;
-            display: inline-flex;
-            align-items: center;
-            cursor: pointer;
-        }
-        .radio-group input[type="radio"] {
-            margin-right: 8px;
-            width: auto;
-            margin-bottom: 0;
-        }
-        .details-section {
-            padding: 20px;
-            border: 1px dashed #007bff;
-            border-radius: 8px;
-            background-color: #f0f8ff;
-            margin-top: 10px;
-        }
+        .details-section {
+            padding: 20px;
+            border: 1px dashed #007bff;
+            border-radius: 8px;
+            background-color: #f0f8ff;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -388,36 +375,36 @@
                 <input type="text" id="lastFiveDigits" name="lastFiveDigits" maxlength="5" required placeholder="請輸入轉帳帳號後五碼">
 
                 <div class="section">
-                    <h2>收據/發票資訊</h2>
-                    <div class="radio-group">
-                        <label>
-                            <input type="radio" name="receiptType" value="receipt" checked> 收據
-                        </label>
-                        <label>
-                            <input type="radio" name="receiptType" value="invoice"> 發票 (加 5% 營業稅)
-                        </label>
-                    </div>
+                    <h2>收據/發票資訊 (請選擇)</h2>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="receiptType" value="receipt"> 收據
+                        </label>
+                        <label>
+                            <input type="radio" name="receiptType" value="invoice"> 發票 (加 5% 營業稅)
+                        </label>
+                    </div>
 
-                    <div id="receipt-details" class="details-section">
-                        <label for="receiptRecipient">收件人</label>
-                        <input type="text" id="receiptRecipient" name="receiptRecipient" placeholder="請輸入收件人姓名">
-                        <label for="receiptPhone">電話</label>
-                        <input type="text" id="receiptPhone" name="receiptPhone" placeholder="請輸入電話號碼">
-                        <label for="receiptAddress">寄送地址</label>
-                        <input type="text" id="receiptAddress" name="receiptAddress" placeholder="請輸入寄送地址">
-                    </div>
+                    <div id="receipt-details" class="details-section" style="display: none;">
+                        <label for="receiptRecipient">收件人</label>
+                        <input type="text" id="receiptRecipient" name="receiptRecipient" placeholder="請輸入收件人姓名">
+                        <label for="receiptPhone">電話</label>
+                        <input type="text" id="receiptPhone" name="receiptPhone" placeholder="請輸入電話號碼">
+                        <label for="receiptAddress">寄送地址</label>
+                        <input type="text" id="receiptAddress" name="receiptAddress" placeholder="請輸入寄送地址">
+                    </div>
 
-                    <div id="invoice-details" class="details-section" style="display: none;">
-                        <label for="invoiceTitle">抬頭</label>
-                        <input type="text" id="invoiceTitle" name="invoiceTitle" placeholder="請輸入公司行號或機關團體名稱">
-                        <label for="invoiceTaxId">統一編號</label>
-                        <input type="text" id="invoiceTaxId" name="invoiceTaxId" placeholder="請輸入統一編號">
-                        <label for="invoiceAddress">地址</label>
-                        <input type="text" id="invoiceAddress" name="invoiceAddress" placeholder="請輸入公司地址">
-                        <label for="invoicePhone">電話</label>
-                        <input type="text" id="invoicePhone" name="invoicePhone" placeholder="請輸入公司電話">
-                    </div>
-                </div>
+                    <div id="invoice-details" class="details-section" style="display: none;">
+                        <label for="invoiceTitle">抬頭</label>
+                        <input type="text" id="invoiceTitle" name="invoiceTitle" placeholder="請輸入公司行號或機關團體名稱">
+                        <label for="invoiceTaxId">統一編號</label>
+                        <input type="text" id="invoiceTaxId" name="invoiceTaxId" placeholder="請輸入統一編號">
+                        <label for="invoiceAddress">地址</label>
+                        <input type="text" id="invoiceAddress" name="invoiceAddress" placeholder="請輸入公司地址">
+                        <label for="invoicePhone">電話</label>
+                        <input type="text" id="invoicePhone" name="invoicePhone" placeholder="請輸入公司電話">
+                    </div>
+                </div>
 
                 <div class="total-amount">
                     <label for="totalAmount">合計金額</label>
@@ -448,433 +435,415 @@
         // !! 請將 'YOUR_WEB_APP_URL_HERE' 替換成您部署後的 Web App URL !!
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqSMStYRtC8OFuN3W8jC9Y_3NYtsZWSUPaEkXfyA6qGNrRe0-CGMeTPnZqNO9wYDKj/exec";
         
-// !! 請將 'YOUR_LINE_OA_ID_HERE' 替換成您的 LINE 官方帳號 ID !!
-const LINE_OA_ID = "@658byecv";
-// Webhook URL
-const WEBHOOK_URL = "https://projectboy-n8n-free.hf.space/webhook/AJ_buy";
+        // !! 請將 'YOUR_LINE_OA_ID_HERE' 替換成您的 LINE 官方帳號 ID !!
+        const LINE_OA_ID = "@658byecv";
+        // Webhook URL
+        const WEBHOOK_URL = "https://projectboy-n8n-free.hf.space/webhook/AJ_buy";
 
-let venueAndHallData;
-let productData;
-let lineProfile = {}; // 新增：用於儲存 LINE 資訊
+        let venueAndHallData;
+        let productData;
+        let lineProfile = {}; // 新增：用於儲存 LINE 資訊
 
-// 主要的 LIFF 初始化函式
-async function initializeLiff() {
-    try {
-        if (!liff.isInClient()) {
-            showCustomAlert('開啟方式錯誤 🚫', '此網頁需在 LINE 應用程式內開啟。');
-            return;
+        // 主要的 LIFF 初始化函式
+        async function initializeLiff() {
+            try {
+                if (!liff.isInClient()) {
+                    showCustomAlert('開啟方式錯誤 🚫', '此網頁需在 LINE 應用程式內開啟。');
+                    return;
+                }
+
+                await liff.init({
+                    liffId: "2008028302-Xe2G97Pw"
+                });
+                if (liff.isLoggedIn()) {
+                    const friendshipStatus = await liff.getFriendship();
+                    if (friendshipStatus.friendFlag) {
+                        document.getElementById('main-form-container').classList.add('active');
+                        await getLineProfile();
+                        loadFormData();
+                    } else {
+                        showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友。', () => {
+                            liff.openWindow({
+                                url: `https://line.me/R/ti/p/${LINE_OA_ID}`,
+                                external: true
+                            });
+                        });
+                    }
+                } else {
+                    liff.login();
+                }
+            } catch (err) {
+                console.error("LIFF initialization failed", err);
+                document.getElementById('line-displayName').textContent = '初始化失敗';
+                showCustomAlert('發生錯誤 ❌', 'LIFF 初始化失敗，請稍後再試。');
+            }
         }
 
-        await liff.init({
-            liffId: "2008028302-Xe2G97Pw"
-        });
+        async function getLineProfile() {
+            try {
+                lineProfile = await liff.getProfile();
+                const { displayName, pictureUrl, userId } = lineProfile;
+                document.getElementById('line-avatar').src = pictureUrl;
+                document.getElementById('line-displayName').textContent = displayName;
+                document.getElementById('uid').value = userId;
+            } catch (err) {
+                console.error("Failed to get LINE profile", err);
+                document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
+            }
+        }
 
-        if (liff.isLoggedIn()) {
-            const friendshipStatus = await liff.getFriendship();
-            if (friendshipStatus.friendFlag) {
-                document.getElementById('main-form-container').classList.add('active');
-                await getLineProfile();
-                loadFormData();
-            } else {
-                showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友。', () => {
-                    liff.openWindow({
-                        url: `https://line.me/R/ti/p/${LINE_OA_ID}`,
-                        external: true
-                    });
+        document.addEventListener('DOMContentLoaded', () => {
+            setFormLoadingState(true);
+            initializeLiff();
+        });
+        async function loadFormData() {
+            try {
+                const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
+                venueAndHallData = await venueResponse.json();
+                populateVenueSelect();
+
+                const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
+                productData = await productResponse.json();
+                populateProductSelects();
+
+                setFormLoadingState(false);
+            } catch (error) {
+                console.error("Failed to load form data:", error);
+                showCustomAlert("載入資料失敗 😥", "無法載入訂購表單資料，請稍後再試。");
+                setFormLoadingState(false);
+            }
+        }
+
+        function setFormLoadingState(isLoading) {
+            const selectElements = document.querySelectorAll('select');
+            selectElements.forEach(select => {
+                if (isLoading) {
+                    select.disabled = true;
+                    select.classList.add('loading-select');
+                    if (select.id === 'funeralVenue') {
+                        select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
+                    } else {
+                        select.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
+                    }
+                } else {
+                    select.disabled = false;
+                    select.classList.remove('loading-select');
+                }
+            });
+        }
+
+        function populateVenueSelect() {
+            const venueSelect = document.getElementById('funeralVenue');
+            const hallSelect = document.getElementById('hallName');
+            venueSelect.innerHTML = '<option value="" disabled selected>請選擇場館</option>';
+            if (venueAndHallData) {
+                for (const venue in venueAndHallData) {
+                    const option = document.createElement('option');
+                    option.value = venue;
+                    option.textContent = venue;
+                    venueSelect.appendChild(option);
+                }
+            }
+            hallSelect.innerHTML = '<option value="" disabled selected>請選擇廳別</option>';
+        }
+
+        function updateHallSelect() {
+            const venueSelect = document.getElementById('funeralVenue');
+            const hallSelect = document.getElementById('hallName');
+            const selectedVenue = venueSelect.value;
+            hallSelect.innerHTML = '<option value="" disabled selected>請選擇廳別</option>';
+            if (selectedVenue && venueAndHallData[selectedVenue]) {
+                const halls = venueAndHallData[selectedVenue];
+                halls.forEach(hall => {
+                    const option = document.createElement('option');
+                    option.value = hall;
+                    option.textContent = hall;
+                    hallSelect.appendChild(option);
                 });
             }
-        } else {
-            liff.login();
         }
-    } catch (err) {
-        console.error("LIFF initialization failed", err);
-        document.getElementById('line-displayName').textContent = '初始化失敗';
-        showCustomAlert('發生錯誤 ❌', 'LIFF 初始化失敗，請稍後再試。');
-    }
-}
 
-async function getLineProfile() {
-    try {
-        lineProfile = await liff.getProfile();
-        const { displayName, pictureUrl, userId } = lineProfile;
-        document.getElementById('line-avatar').src = pictureUrl;
-        document.getElementById('line-displayName').textContent = displayName;
-        document.getElementById('uid').value = userId;
-    } catch (err) {
-        console.error("Failed to get LINE profile", err);
-        document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
-    }
-}
+        function populateProductSelects() {
+            const products = {
+                'flowerBasket': '花籃',
+                'wreath': '籃花',
+                'fruitBasket': '水果籃'
+            };
+            for (const key in products) {
+                const category = products[key];
+                const selectElement = document.getElementById(`${key}Style`);
+                selectElement.innerHTML = '<option value="" disabled selected>請選擇樣式</option>';
+                if (productData && productData[category]) {
+                    const styles = Object.keys(productData[category]);
+                    styles.forEach(style => {
+                        const option = document.createElement('option');
+                        option.value = style;
+                        option.textContent = style;
+                        selectElement.appendChild(option);
+                    });
+                }
+            }
+        }
 
-document.addEventListener('DOMContentLoaded', () => {
-    setFormLoadingState(true);
-    initializeLiff();
-});
-
-
-        
-async function loadFormData() {
-    try {
-        const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
-        venueAndHallData = await venueResponse.json();
-        populateVenueSelect();
-
-        const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
-        productData = await productResponse.json();
-        populateProductSelects();
-
-        setFormLoadingState(false);
-    } catch (error) {
-        console.error("Failed to load form data:", error);
-        showCustomAlert("載入資料失敗 😥", "無法載入訂購表單資料，請稍後再試。");
-        setFormLoadingState(false);
-    }
-}
-
-function setFormLoadingState(isLoading) {
-    const selectElements = document.querySelectorAll('select');
-    selectElements.forEach(select => {
-        if (isLoading) {
-            select.disabled = true;
-            select.classList.add('loading-select');
-            if (select.id === 'funeralVenue') {
-                select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
+        function updatePrice(productType) {
+            const styleSelect = document.getElementById(`${productType}Style`);
+            const priceInput = document.getElementById(`${productType}Price`);
+            const imageElement = document.getElementById(`${productType}Image`);
+            const selectedStyle = styleSelect.value;
+            let category;
+            if (productType === 'flowerBasket') category = '花籃';
+            else if (productType === 'wreath') category = '籃花';
+            else if (productType === 'fruitBasket') category = '水果籃';
+            if (selectedStyle && productData[category] && productData[category][selectedStyle]) {
+                const data = productData[category][selectedStyle];
+                priceInput.value = data.price;
+                imageElement.src = data.photoUrl;
+                imageElement.style.display = 'block';
             } else {
-                select.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
+                priceInput.value = 0;
+                imageElement.src = '';
+                imageElement.style.display = 'none';
             }
-        } else {
-            select.disabled = false;
-            select.classList.remove('loading-select');
+            calculateTotal();
         }
-    });
-}
 
-function populateVenueSelect() {
-    const venueSelect = document.getElementById('funeralVenue');
-    const hallSelect = document.getElementById('hallName');
-    venueSelect.innerHTML = '<option value="" disabled selected>請選擇場館</option>';
-    if (venueAndHallData) {
-        for (const venue in venueAndHallData) {
-            const option = document.createElement('option');
-            option.value = venue;
-            option.textContent = venue;
-            venueSelect.appendChild(option);
-        }
-    }
-    hallSelect.innerHTML = '<option value="" disabled selected>請選擇廳別</option>';
-}
-
-function updateHallSelect() {
-    const venueSelect = document.getElementById('funeralVenue');
-    const hallSelect = document.getElementById('hallName');
-    const selectedVenue = venueSelect.value;
-    hallSelect.innerHTML = '<option value="" disabled selected>請選擇廳別</option>';
-    if (selectedVenue && venueAndHallData[selectedVenue]) {
-        const halls = venueAndHallData[selectedVenue];
-        halls.forEach(hall => {
-            const option = document.createElement('option');
-            option.value = hall;
-            option.textContent = hall;
-            hallSelect.appendChild(option);
-        });
-    }
-}
-
-function populateProductSelects() {
-    const products = {
-        'flowerBasket': '花籃',
-        'wreath': '籃花',
-        'fruitBasket': '水果籃'
-    };
-    for (const key in products) {
-        const category = products[key];
-        const selectElement = document.getElementById(`${key}Style`);
-        selectElement.innerHTML = '<option value="" disabled selected>請選擇樣式</option>';
-        if (productData && productData[category]) {
-            const styles = Object.keys(productData[category]);
-            styles.forEach(style => {
-                const option = document.createElement('option');
-                option.value = style;
-                option.textContent = style;
-                selectElement.appendChild(option);
-            });
-        }
-    }
-}
-
-function updatePrice(productType) {
-    const styleSelect = document.getElementById(`${productType}Style`);
-    const priceInput = document.getElementById(`${productType}Price`);
-    const imageElement = document.getElementById(`${productType}Image`);
-    const selectedStyle = styleSelect.value;
-    let category;
-    if (productType === 'flowerBasket') category = '花籃';
-    else if (productType === 'wreath') category = '籃花';
-    else if (productType === 'fruitBasket') category = '水果籃';
-
-    if (selectedStyle && productData[category] && productData[category][selectedStyle]) {
-        const data = productData[category][selectedStyle];
-        priceInput.value = data.price;
-        imageElement.src = data.photoUrl;
-        imageElement.style.display = 'block';
-    } else {
-        priceInput.value = 0;
-        imageElement.src = '';
-        imageElement.style.display = 'none';
-    }
-    calculateTotal();
-}
-
-const checkboxes = document.querySelectorAll('input[type="checkbox"][name="productType"]');
-checkboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', (event) => {
-        const productType = event.target.value;
-        const detailsElement = document.getElementById(`${productType}Details`);
-        const imageElement = document.getElementById(`${productType}Image`);
-        if (event.target.checked) {
-            detailsElement.classList.add('active');
-        } else {
-            detailsElement.classList.remove('active');
-            document.getElementById(`${productType}Style`).selectedIndex = 0;
-            document.getElementById(`${productType}Price`).value = 0;
-            document.getElementById(`${productType}Qty`).value = 0;
-            imageElement.src = '';
-            imageElement.style.display = 'none';
-        }
-        calculateTotal();
-    });
-});
-
-function calculateTotal() {
-    let total = 0;
-    const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
-    productTypes.forEach(type => {
-        const qty = parseInt(document.getElementById(`${type}Qty`).value) || 0;
-        const price = parseFloat(document.getElementById(`${type}Price`).value) || 0;
-        total += qty * price;
-    });
-    document.getElementById('totalAmount').value = total;
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    // 監聽 radio 按鈕的變動
-    const receiptRadios = document.querySelectorAll('input[name="receiptType"]');
-    receiptRadios.forEach(radio => {
-        radio.addEventListener('change', () => {
-            const receiptDetails = document.getElementById('receipt-details');
-            const invoiceDetails = document.getElementById('invoice-details');
-            if (radio.value === 'receipt') {
-                receiptDetails.style.display = 'block';
-                invoiceDetails.style.display = 'none';
-            } else {
-                receiptDetails.style.display = 'none';
-                invoiceDetails.style.display = 'block';
-            }
-            calculateTotal(); // 重新計算總金額以包含營業稅
-        });
-    });
-});
-
-// 修改 calculateTotal 函式，新增發票營業稅的計算
-function calculateTotal() {
-    let total = 0;
-    const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
-    productTypes.forEach(type => {
-        const qty = parseInt(document.getElementById(`${type}Qty`).value) || 0;
-        const price = parseFloat(document.getElementById(`${type}Price`).value) || 0;
-        total += qty * price;
-    });
-
-    // 如果選擇了發票，新增 5% 的營業稅
-    const receiptType = document.querySelector('input[name="receiptType"]:checked').value;
-    if (receiptType === 'invoice') {
-        total = total * 1.05;
-    }
-
-    document.getElementById('totalAmount').value = Math.round(total);
-}
-        
-function showCustomAlert(title, message, callback = null) {
-    const modal = document.getElementById('customAlert');
-    const titleElement = document.getElementById('modalTitle');
-    const messageElement = document.getElementById('modalMessage');
-    const okBtn = document.getElementById('modalOkBtn');
-    const closeBtn = document.querySelector('.close-btn');
-
-    titleElement.textContent = title;
-    messageElement.textContent = message;
-    modal.style.display = 'flex';
-
-    const closeModal = () => {
-        modal.style.display = 'none';
-        if (callback) {
-            callback();
-        }
-    };
-
-    okBtn.onclick = closeModal;
-    closeBtn.onclick = closeModal;
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            closeModal();
-        }
-    };
-}
-
-function setSubmitButtonState(isSubmitting) {
-    const submitBtn = document.querySelector('.submit-button');
-    if (isSubmitting) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = '訂單處理中...';
-        submitBtn.style.backgroundColor = '#6c757d';
-    } else {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '送出訂單';
-        submitBtn.style.backgroundColor = '#28a745';
-    }
-}
-
-// 根據新的規則生成訂單編號
-function generateOrderNumber() {
-    const now = new Date();
-    const year = String(now.getFullYear()).slice(-2);
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    const random = String(Math.floor(Math.random() * 900) + 100);
-    return `AJ${year}${month}${day}-${hours}${minutes}${seconds}-${random}`;
-}
-
-document.getElementById('aj_index').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    let isValid = true;
-    const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'dedication', 'lastFiveDigits'];
-    const errorMessages = [];
-    const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
-
-    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
-
-    requiredFields.forEach(id => {
-        const input = document.getElementById(id);
-        if (!input.value) {
-            input.classList.add('error');
-            isValid = false;
-        }
-    });
-
-    if (!hasSelectedProduct) {
-        errorMessages.push('請至少勾選一項商品類別。');
-    } else {
-        const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
-        productTypes.forEach(type => {
-            const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
-            if (checkbox.checked) {
-                const styleSelect = document.getElementById(`${type}Style`);
-                const qtyInput = document.getElementById(`${type}Qty`);
-                if (!styleSelect.value) {
-                    styleSelect.classList.add('error');
-                    isValid = false;
-                    errorMessages.push(`請選擇樣式。`);
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="productType"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (event) => {
+                const productType = event.target.value;
+                const detailsElement = document.getElementById(`${productType}Details`);
+                const imageElement = document.getElementById(`${productType}Image`);
+                if (event.target.checked) {
+                    detailsElement.classList.add('active');
+                } else {
+                    detailsElement.classList.remove('active');
+                    document.getElementById(`${productType}Style`).selectedIndex = 0;
+                    document.getElementById(`${productType}Price`).value = 0;
+                    document.getElementById(`${productType}Qty`).value = 0;
+                    imageElement.src = '';
+                    imageElement.style.display = 'none';
                 }
-                if (parseInt(qtyInput.value) <= 0) {
-                    qtyInput.classList.add('error');
-                    isValid = false;
-                    errorMessages.push(`請輸入數量。`);
-                }
-            }
-        });
-    }
-
-    const totalAmount = parseFloat(document.getElementById('totalAmount').value);
-    if (totalAmount === 0 && hasSelectedProduct) {
-        isValid = false;
-        errorMessages.push('合計金額為0，請確認您的選擇。');
-    }
-
-    const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
-    if (lastFiveDigitsInput.value.trim().length !== 5) {
-        lastFiveDigitsInput.classList.add('error');
-        isValid = false;
-        errorMessages.push('轉帳後五碼必須為五位數字。');
-    }
-
-    if (!isValid) {
-        const allErrors = [
-            ...new Set(errorMessages),
-            ...Array.from(document.querySelectorAll('input:not([type="checkbox"]).error, select.error'))
-                .map(el => `請檢查「${el.previousElementSibling.textContent.replace('：', '')}」欄位。`)
-        ].filter(Boolean);
-        showCustomAlert('訂單填寫有誤 ⚠️', allErrors.join('\n'));
-        return;
-    }
-
-    setSubmitButtonState(true);
-
-    const formData = new FormData(this);
-    const orderData = {};
-    formData.forEach((value, key) => {
-        if (value) {
-            orderData[key] = value;
-        }
-    });
-
-    orderData.orderNumber = generateOrderNumber();
-
-    orderData.lineProfile = {
-        uid: lineProfile.userId,
-        displayName: lineProfile.displayName
-    };
-
-    orderData.products = {};
-    const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
-    productTypes.forEach(type => {
-        const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
-        if (checkbox.checked) {
-            const style = document.getElementById(`${type}Style`).value;
-            const qty = document.getElementById(`${type}Qty`).value;
-            const price = document.getElementById(`${type}Price`).value;
-            if (style && qty > 0) {
-                const categoryMap = { 'flowerBasket': '花籃', 'wreath': '籃花', 'fruitBasket': '水果籃' };
-                const category = categoryMap[type];
-                const photoUrl = productData[category]?.[style]?.photoUrl || '';
-                orderData.products[type] = {
-                    style: style,
-                    qty: qty,
-                    price: price,
-                    photoUrl: photoUrl
-                };
-            }
-        }
-    });
-
-    orderData.totalAmount = document.getElementById('totalAmount').value;
-
-    try {
-        const response = await fetch(WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderData),
-        });
-
-        if (response.ok) {
-            showCustomAlert('訂單送出成功 🎉', '稍後將收到訂單內容及轉帳資訊，麻煩確認內容及轉帳完成後主動通知小幫手，感謝。', () => {
-                liff.closeWindow();
+                calculateTotal();
             });
-        } else {
-            const errorText = await response.text();
-            throw new Error(`伺服器回應錯誤: ${response.status} - ${errorText}`);
+        });
+
+        const receiptRadios = document.querySelectorAll('input[name="receiptType"]');
+        const receiptDetails = document.getElementById('receipt-details');
+        const invoiceDetails = document.getElementById('invoice-details');
+
+        receiptRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.value === 'receipt') {
+                    receiptDetails.style.display = 'block';
+                    invoiceDetails.style.display = 'none';
+                } else {
+                    receiptDetails.style.display = 'none';
+                    invoiceDetails.style.display = 'block';
+                }
+                calculateTotal();
+            });
+        });
+
+        function calculateTotal() {
+            let total = 0;
+            const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+            productTypes.forEach(type => {
+                const qty = parseInt(document.getElementById(`${type}Qty`).value) || 0;
+                const price = parseFloat(document.getElementById(`${type}Price`).value) || 0;
+                total += qty * price;
+            });
+
+            const selectedReceiptType = document.querySelector('input[name="receiptType"]:checked');
+            if (selectedReceiptType && selectedReceiptType.value === 'invoice') {
+                total = total * 1.05;
+            }
+
+            document.getElementById('totalAmount').value = Math.round(total);
         }
-    } catch (error) {
-        console.error('送出訂單時發生錯誤:', error);
-        showCustomAlert('送出失敗 😥', '傳送訂單時發生問題，請稍後再試。');
-    } finally {
-        setSubmitButtonState(false);
-    }
-});
+                
+        function showCustomAlert(title, message, callback = null) {
+            const modal = document.getElementById('customAlert');
+            const titleElement = document.getElementById('modalTitle');
+            const messageElement = document.getElementById('modalMessage');
+            const okBtn = document.getElementById('modalOkBtn');
+            const closeBtn = document.querySelector('.close-btn');
+
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+            modal.style.display = 'flex';
+
+            const closeModal = () => {
+                modal.style.display = 'none';
+                if (callback) {
+                    callback();
+                }
+            };
+            okBtn.onclick = closeModal;
+            closeBtn.onclick = closeModal;
+            window.onclick = (event) => {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            };
+        }
+
+        function setSubmitButtonState(isSubmitting) {
+            const submitBtn = document.querySelector('.submit-button');
+            if (isSubmitting) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '訂單處理中...';
+                submitBtn.style.backgroundColor = '#6c757d';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '送出訂單';
+                submitBtn.style.backgroundColor = '#28a745';
+            }
+        }
+
+        // 根據新的規則生成訂單編號
+        function generateOrderNumber() {
+            const now = new Date();
+            const year = String(now.getFullYear()).slice(-2);
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const random = String(Math.floor(Math.random() * 900) + 100);
+            return `AJ${year}${month}${day}-${hours}${minutes}${seconds}-${random}`;
+        }
+
+        document.getElementById('aj_index').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            let isValid = true;
+            const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'dedication', 'lastFiveDigits'];
+            const errorMessages = [];
+            const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
+            const hasSelectedReceiptType = document.querySelector('input[name="receiptType"]:checked') !== null;
+            
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+
+            requiredFields.forEach(id => {
+                const input = document.getElementById(id);
+                if (!input.value) {
+                    input.classList.add('error');
+                    isValid = false;
+                }
+            });
+
+            if (!hasSelectedProduct) {
+                errorMessages.push('請至少勾選一項商品類別。');
+            } else {
+                const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+                productTypes.forEach(type => {
+                    const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
+                    if (checkbox.checked) {
+                        const styleSelect = document.getElementById(`${type}Style`);
+                        const qtyInput = document.getElementById(`${type}Qty`);
+                        if (!styleSelect.value) {
+                            styleSelect.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`請選擇樣式。`);
+                        }
+                        if (parseInt(qtyInput.value) <= 0) {
+                            qtyInput.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`請輸入數量。`);
+                        }
+                    }
+                });
+            }
+
+            if (!hasSelectedReceiptType) {
+                isValid = false;
+                errorMessages.push('請選擇收據或發票資訊。');
+            }
+
+            const totalAmount = parseFloat(document.getElementById('totalAmount').value);
+            if (totalAmount === 0 && hasSelectedProduct) {
+                isValid = false;
+                errorMessages.push('合計金額為0，請確認您的選擇。');
+            }
+
+            const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
+            if (lastFiveDigitsInput.value.trim().length !== 5) {
+                lastFiveDigitsInput.classList.add('error');
+                isValid = false;
+                errorMessages.push('轉帳後五碼必須為五位數字。');
+            }
+
+            if (!isValid) {
+                const allErrors = [
+                    ...new Set(errorMessages),
+                    ...Array.from(document.querySelectorAll('input:not([type="checkbox"]).error, select.error'))
+                        .map(el => `請檢查「${el.previousElementSibling.textContent.replace('：', '')}」欄位。`)
+                ].filter(Boolean);
+                showCustomAlert('訂單填寫有誤 ⚠️', allErrors.join('\n'));
+                return;
+            }
+
+            setSubmitButtonState(true);
+
+            const formData = new FormData(this);
+            const orderData = {};
+            formData.forEach((value, key) => {
+                if (value) {
+                    orderData[key] = value;
+                }
+            });
+            orderData.orderNumber = generateOrderNumber();
+
+            orderData.lineProfile = {
+                uid: lineProfile.userId,
+                displayName: lineProfile.displayName
+            };
+            orderData.products = {};
+            const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+            productTypes.forEach(type => {
+                const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
+                if (checkbox.checked) {
+                    const style = document.getElementById(`${type}Style`).value;
+                    const qty = document.getElementById(`${type}Qty`).value;
+                    const price = document.getElementById(`${type}Price`).value;
+                    if (style && qty > 0) {
+                        const categoryMap = { 'flowerBasket': '花籃', 'wreath': '籃花', 'fruitBasket': '水果籃' };
+                        const category = categoryMap[type];
+                        const photoUrl = productData[category]?.[style]?.photoUrl || '';
+                        orderData.products[type] = {
+                            style: style,
+                            qty: qty,
+                            price: price,
+                            photoUrl: photoUrl
+                        };
+                    }
+                }
+            });
+
+            orderData.totalAmount = document.getElementById('totalAmount').value;
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData),
+                });
+                if (response.ok) {
+                    showCustomAlert('訂單送出成功 🎉', '稍後將收到訂單內容及轉帳資訊，麻煩確認內容及轉帳完成後主動通知小幫手，感謝。', () => {
+                        liff.closeWindow();
+                    });
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`伺服器回應錯誤: ${response.status} - ${errorText}`);
+                }
+            } catch (error) {
+                console.error('送出訂單時發生錯誤:', error);
+                showCustomAlert('送出失敗 😥', '傳送訂單時發生問題，請稍後再試。');
+            } finally {
+                setSubmitButtonState(false);
+            }
+        });
     </script>
 </body>
 </html>
