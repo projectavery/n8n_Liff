@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-1</title>
+    <title>悼念花籃訂購單-2</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -90,6 +90,7 @@
             border-radius: 8px;
             box-sizing: border-box;
             transition: border-color 0.3s, box-shadow 0.3s;
+            font-size: 1.2em; /* 新增此行 */
         }
         input:focus, select:focus {
             outline: none;
@@ -278,13 +279,13 @@
             <hr>
 
             <div class="section">
-                <h2>商品類別</h2>
+                <h2>商品類別 (請勾選)</h2>
                 <div class="checkbox-group">
                     <label>
                         <input type="checkbox" id="checkboxFlowerBasket" name="productType" value="flowerBasket"> 花籃
                     </label>
                     <label>
-                        <input type="checkbox" id="checkboxWreath" name="productType" value="wreath"> 籃花
+                        <input type="checkbox" id="checkboxWreath" name="productType" value="wreath"> 蝴蝶蘭
                     </label>
                     <label style="display: none;">
                         <input type="checkbox" id="checkboxFruitBasket" name="productType" value="fruitBasket"> 水果籃
@@ -313,7 +314,7 @@
                 </div>
 
                 <div id="wreathDetails" class="product-details">
-                    <h3>籃花</h3>
+                    <h3>蝴蝶蘭</h3>
                     <img id="wreathImage" src="" alt="籃花照片" class="product-image" style="display: none;">
                     <div class="form-row">
                         <div>
@@ -781,6 +782,7 @@ document.getElementById('aj_index').addEventListener('submit', async function(ev
     </script>
 </body>
 </html>
+
 
 
 
