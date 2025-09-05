@@ -732,22 +732,29 @@
             event.preventDefault();
             let isValid = true;
             const errorMessages = [];
-            const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
-            const receiptType = document.querySelector('input[name="receiptType"]:checked').value;
             
             document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
 
             // 驗證基本欄位
-            const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'dedication', 'lastFiveDigits'];
-            requiredFields.forEach(id => {
+            const requiredFields = {
+                'funeralDate': '告別式日期',
+                'funeralVenue': '告別式場館',
+                'hallName': '廳別',
+                'deceasedName': '案名',
+                'dedication': '落款',
+                'lastFiveDigits': '轉帳後五碼'
+            };
+            for (const id in requiredFields) {
                 const input = document.getElementById(id);
                 if (!input.value) {
                     input.classList.add('error');
+                    errorMessages.push(`請填寫「${requiredFields[id]}」欄位。`);
                     isValid = false;
                 }
-            });
+            }
 
             // 驗證商品類別
+            const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
             if (!hasSelectedProduct) {
                 errorMessages.push('請至少勾選一項商品類別。');
                 isValid = false;
@@ -758,61 +765,69 @@
                     if (checkbox.checked) {
                         const styleSelect = document.getElementById(`${type}Style`);
                         const qtyInput = document.getElementById(`${type}Qty`);
+                        
                         if (!styleSelect.value) {
                             styleSelect.classList.add('error');
+                            errorMessages.push(`請選擇「${styleSelect.previousElementSibling.textContent}」樣式。`);
                             isValid = false;
-                            errorMessages.push(`請選擇樣式。`);
                         }
-                        if (parseInt(qtyInput.value) <= 0) {
+                        if (parseInt(qtyInput.value) <= 0 || !qtyInput.value) {
                             qtyInput.classList.add('error');
+                            errorMessages.push(`「${qtyInput.previousElementSibling.textContent}」數量必須大於 0。`);
                             isValid = false;
-                            errorMessages.push(`請輸入數量。`);
                         }
                     }
                 });
             }
 
             // 驗證收據/發票欄位
+            const receiptType = document.querySelector('input[name="receiptType"]:checked').value;
             if (receiptType === 'receipt') {
-                const receiptFields = ['receiptRecipient', 'receiptPhone', 'receiptAddress'];
-                receiptFields.forEach(id => {
+                const receiptFields = {
+                    'receiptRecipient': '收件人',
+                    'receiptPhone': '電話',
+                    'receiptAddress': '寄送地址'
+                };
+                for (const id in receiptFields) {
                     const input = document.getElementById(id);
                     if (!input.value) {
                         input.classList.add('error');
+                        errorMessages.push(`請填寫「${receiptFields[id]}」欄位。`);
                         isValid = false;
                     }
-                });
+                }
             } else if (receiptType === 'invoice') {
-                const invoiceFields = ['invoiceTitle', 'invoiceTaxId', 'invoiceAddress', 'invoicePhone'];
-                invoiceFields.forEach(id => {
+                const invoiceFields = {
+                    'invoiceTitle': '抬頭',
+                    'invoiceTaxId': '統一編號',
+                    'invoiceAddress': '地址',
+                    'invoicePhone': '電話'
+                };
+                for (const id in invoiceFields) {
                     const input = document.getElementById(id);
                     if (!input.value) {
                         input.classList.add('error');
+                        errorMessages.push(`請填寫「${invoiceFields[id]}」欄位。`);
                         isValid = false;
                     }
-                });
-            }
-
-            const totalAmount = parseFloat(document.getElementById('totalAmount').value);
-            if (totalAmount === 0 && hasSelectedProduct) {
-                isValid = false;
-                errorMessages.push('合計金額為0，請確認您的選擇。');
+                }
             }
 
             const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
             if (lastFiveDigitsInput.value.trim().length !== 5) {
                 lastFiveDigitsInput.classList.add('error');
-                isValid = false;
                 errorMessages.push('轉帳後五碼必須為五位數字。');
+                isValid = false;
             }
 
             if (!isValid) {
-                const allErrors = [
-                    ...new Set(errorMessages),
-                    ...Array.from(document.querySelectorAll('input:not([type="checkbox"]).error, select.error'))
-                        .map(el => `請檢查「${el.previousElementSibling.textContent.replace('：', '')}」欄位。`)
-                ].filter(Boolean);
-                showCustomAlert('訂單填寫有誤 ⚠️', allErrors.join('\n'));
+                showCustomAlert('訂單填寫有誤 ⚠️', errorMessages.join('\n'));
+                return;
+            }
+            
+            const totalAmount = parseFloat(document.getElementById('totalAmount').value);
+            if (totalAmount === 0 && hasSelectedProduct) {
+                showCustomAlert('金額錯誤 ⚠️', '合計金額為0，請確認您的選擇。');
                 return;
             }
 
@@ -869,11 +884,10 @@
                     });
                 } else {
                     const errorText = await response.text();
-                    throw new Error(`伺服器回應錯誤: ${response.status} - ${errorText}`);
+                    showCustomAlert('送出失敗 😥', `伺服器回應錯誤: ${response.status} - ${errorText}`);
                 }
             } catch (error) {
-                console.error('送出訂單時發生錯誤:', error);
-                showCustomAlert('送出失敗 😥', '傳送訂單時發生問題，請稍後再試。');
+                showCustomAlert('送出失敗 😥', `傳送訂單時發生問題: ${error.message}`);
             } finally {
                 setSubmitButtonState(false);
             }
@@ -881,4 +895,3 @@
     </script>
 </body>
 </html>
-
