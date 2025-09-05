@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-2</title>
+    <title>悼念花籃訂購單-1</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -238,6 +238,30 @@
             color: #6c757d;
             cursor: not-allowed;
         }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .radio-group label {
+            font-weight: normal;
+            font-size: 1em;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .radio-group input[type="radio"] {
+            margin-right: 8px;
+            width: auto;
+            margin-bottom: 0;
+        }
+        .details-section {
+            padding: 20px;
+            border: 1px dashed #007bff;
+            border-radius: 8px;
+            background-color: #f0f8ff;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -360,13 +384,45 @@
             <hr>
 
             <div class="section">
+                <label for="lastFiveDigits">轉帳後五碼</label>
+                <input type="text" id="lastFiveDigits" name="lastFiveDigits" maxlength="5" required placeholder="請輸入轉帳帳號後五碼">
+
+                <div class="section">
+                    <h2>收據/發票資訊</h2>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="receiptType" value="receipt" checked> 收據
+                        </label>
+                        <label>
+                            <input type="radio" name="receiptType" value="invoice"> 發票 (加 5% 營業稅)
+                        </label>
+                    </div>
+
+                    <div id="receipt-details" class="details-section">
+                        <label for="receiptRecipient">收件人</label>
+                        <input type="text" id="receiptRecipient" name="receiptRecipient" placeholder="請輸入收件人姓名">
+                        <label for="receiptPhone">電話</label>
+                        <input type="text" id="receiptPhone" name="receiptPhone" placeholder="請輸入電話號碼">
+                        <label for="receiptAddress">寄送地址</label>
+                        <input type="text" id="receiptAddress" name="receiptAddress" placeholder="請輸入寄送地址">
+                    </div>
+
+                    <div id="invoice-details" class="details-section" style="display: none;">
+                        <label for="invoiceTitle">抬頭</label>
+                        <input type="text" id="invoiceTitle" name="invoiceTitle" placeholder="請輸入公司行號或機關團體名稱">
+                        <label for="invoiceTaxId">統一編號</label>
+                        <input type="text" id="invoiceTaxId" name="invoiceTaxId" placeholder="請輸入統一編號">
+                        <label for="invoiceAddress">地址</label>
+                        <input type="text" id="invoiceAddress" name="invoiceAddress" placeholder="請輸入公司地址">
+                        <label for="invoicePhone">電話</label>
+                        <input type="text" id="invoicePhone" name="invoicePhone" placeholder="請輸入公司電話">
+                    </div>
+                </div>
+
                 <div class="total-amount">
                     <label for="totalAmount">合計金額</label>
                     <input type="text" id="totalAmount" value="0" readonly>
                 </div>
-
-                <label for="lastFiveDigits">轉帳後五碼</label>
-                <input type="text" id="lastFiveDigits" name="lastFiveDigits" maxlength="5" required placeholder="請輸入轉帳帳號後五碼">
             </div>
 
             <button type="submit" class="submit-button">送出訂單</button>
@@ -455,6 +511,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeLiff();
 });
 
+
+        
 async function loadFormData() {
     try {
         const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
@@ -598,6 +656,44 @@ function calculateTotal() {
     document.getElementById('totalAmount').value = total;
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    // 監聽 radio 按鈕的變動
+    const receiptRadios = document.querySelectorAll('input[name="receiptType"]');
+    receiptRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            const receiptDetails = document.getElementById('receipt-details');
+            const invoiceDetails = document.getElementById('invoice-details');
+            if (radio.value === 'receipt') {
+                receiptDetails.style.display = 'block';
+                invoiceDetails.style.display = 'none';
+            } else {
+                receiptDetails.style.display = 'none';
+                invoiceDetails.style.display = 'block';
+            }
+            calculateTotal(); // 重新計算總金額以包含營業稅
+        });
+    });
+});
+
+// 修改 calculateTotal 函式，新增發票營業稅的計算
+function calculateTotal() {
+    let total = 0;
+    const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+    productTypes.forEach(type => {
+        const qty = parseInt(document.getElementById(`${type}Qty`).value) || 0;
+        const price = parseFloat(document.getElementById(`${type}Price`).value) || 0;
+        total += qty * price;
+    });
+
+    // 如果選擇了發票，新增 5% 的營業稅
+    const receiptType = document.querySelector('input[name="receiptType"]:checked').value;
+    if (receiptType === 'invoice') {
+        total = total * 1.05;
+    }
+
+    document.getElementById('totalAmount').value = Math.round(total);
+}
+        
 function showCustomAlert(title, message, callback = null) {
     const modal = document.getElementById('customAlert');
     const titleElement = document.getElementById('modalTitle');
@@ -782,6 +878,7 @@ document.getElementById('aj_index').addEventListener('submit', async function(ev
     </script>
 </body>
 </html>
+
 
 
 
