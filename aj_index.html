@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-2</title>
+    <title>悼念花籃訂購單-1</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -80,6 +80,7 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #495057;
+            font-size: 1.2em; /* 新增此行 */
         }
         input[type="text"], input[type="date"], input[type="number"], select {
             width: 100%;
@@ -285,7 +286,7 @@
                     <label>
                         <input type="checkbox" id="checkboxWreath" name="productType" value="wreath"> 籃花
                     </label>
-                    <label>
+                    <label style="display: none;">
                         <input type="checkbox" id="checkboxFruitBasket" name="productType" value="fruitBasket"> 水果籃
                     </label>
                 </div>
@@ -333,6 +334,26 @@
                 </div>
 
                 
+                <div id="fruitBasketDetails" class="product-details">
+                    <h3>水果籃</h3>
+                    <img id="fruitBasketImage" src="" alt="水果籃照片" class="product-image" style="display: none;">
+                    <div class="form-row">
+                        <div>
+                            <label for="fruitBasketStyle">樣式</label>
+                            <select id="fruitBasketStyle" name="fruitBasketStyle" onchange="updatePrice('fruitBasket')">
+                                <option value="" disabled selected>請選擇樣式</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="fruitBasketPrice">單價</label>
+                            <input type="text" id="fruitBasketPrice" class="price-box" value="0" readonly>
+                        </div>
+                        <div>
+                            <label for="fruitBasketQty">數量</label>
+                            <input type="number" id="fruitBasketQty" name="fruitBasketQty" min="0" value="0" oninput="calculateTotal()">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <hr>
@@ -760,6 +781,7 @@ document.getElementById('aj_index').addEventListener('submit', async function(ev
     </script>
 </body>
 </html>
+
 
 
 
