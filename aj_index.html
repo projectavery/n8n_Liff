@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單7</title>
+    <title>悼念花籃訂購單</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -279,11 +279,12 @@
                 <label for="deceasedName">案名</label>
                 <input type="text" id="deceasedName" name="deceasedName" required placeholder="請輸入亡者姓名">
 
-                <div id="dedication-input-group">
-                    <label for="dedication">落款</label>
+                <div class="dedication-group">
                     <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement">
                     <label for="checkboxCompanyArrangement" style="margin-bottom: 0;">公司安排</label>
-                    
+                </div>
+                <div id="dedication-input-group">
+                    <label for="dedication">落款</label>
                     <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
                 </div>
 
@@ -403,6 +404,16 @@
                         <input type="text" id="receiptRecipient" name="receiptRecipient" placeholder="請輸入收件人姓名">
                         <label for="receiptPhone">電話</label>
                         <input type="text" id="receiptPhone" name="receiptPhone" placeholder="請輸入電話號碼">
+                        <div class="form-row">
+                            <div>
+                                <label for="receiptCounty">縣市</label>
+                                <select id="receiptCounty" name="receiptCounty" onchange="updateDistrictSelect('receipt')"></select>
+                            </div>
+                            <div>
+                                <label for="receiptDistrict">鄉鎮市區</label>
+                                <select id="receiptDistrict" name="receiptDistrict"></select>
+                            </div>
+                        </div>
                         <label for="receiptAddress">寄送地址</label>
                         <input type="text" id="receiptAddress" name="receiptAddress" placeholder="請輸入寄送地址">
                     </div>
@@ -415,11 +426,11 @@
                         <div class="form-row">
                             <div>
                                 <label for="invoiceCounty">縣市</label>
-                                <select id="invoiceCounty" name="invoiceCounty" required onchange="updateDistrictSelect()"></select>
+                                <select id="invoiceCounty" name="invoiceCounty" onchange="updateDistrictSelect('invoice')"></select>
                             </div>
                             <div>
                                 <label for="invoiceDistrict">鄉鎮市區</label>
-                                <select id="invoiceDistrict" name="invoiceDistrict" required></select>
+                                <select id="invoiceDistrict" name="invoiceDistrict"></select>
                             </div>
                         </div>
                         <label for="invoiceAddress">地址</label>
@@ -527,7 +538,7 @@
 
                 const countyDistrictResponse = await fetch(`${WEB_APP_URL}?dataType=countyDistrict`);
                 countyDistrictData = await countyDistrictResponse.json();
-                populateCountySelect();
+                populateCountySelects();
 
                 setFormLoadingState(false);
             } catch (error) {
@@ -545,7 +556,7 @@
                     select.classList.add('loading-select');
                     if (select.id === 'funeralVenue') {
                         select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
-                    } else if (select.id === 'invoiceCounty') {
+                    } else if (select.id === 'invoiceCounty' || select.id === 'receiptCounty') {
                         select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
                     } else {
                         select.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
@@ -588,22 +599,31 @@
             }
         }
 
-        function populateCountySelect() {
-            const countySelect = document.getElementById('invoiceCounty');
-            countySelect.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
+        function populateCountySelects() {
+            const invoiceCountySelect = document.getElementById('invoiceCounty');
+            const receiptCountySelect = document.getElementById('receiptCounty');
+            
+            invoiceCountySelect.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
+            receiptCountySelect.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
+
             if (countyDistrictData) {
                 for (const county in countyDistrictData) {
-                    const option = document.createElement('option');
-                    option.value = county;
-                    option.textContent = county;
-                    countySelect.appendChild(option);
+                    const optionInvoice = document.createElement('option');
+                    optionInvoice.value = county;
+                    optionInvoice.textContent = county;
+                    invoiceCountySelect.appendChild(optionInvoice);
+
+                    const optionReceipt = document.createElement('option');
+                    optionReceipt.value = county;
+                    optionReceipt.textContent = county;
+                    receiptCountySelect.appendChild(optionReceipt);
                 }
             }
         }
         
-        function updateDistrictSelect() {
-            const countySelect = document.getElementById('invoiceCounty');
-            const districtSelect = document.getElementById('invoiceDistrict');
+        function updateDistrictSelect(type) {
+            const countySelect = document.getElementById(`${type}County`);
+            const districtSelect = document.getElementById(`${type}District`);
             const selectedCounty = countySelect.value;
             districtSelect.innerHTML = '<option value="" disabled selected>請選擇鄉鎮市區</option>';
             if (selectedCounty && countyDistrictData[selectedCounty]) {
@@ -701,7 +721,6 @@
             });
         });
 
-        // 新增落款「公司安排」的邏輯
         const companyArrangementCheckbox = document.getElementById('checkboxCompanyArrangement');
         const dedicationInputGroup = document.getElementById('dedication-input-group');
         const dedicationInput = document.getElementById('dedication');
@@ -800,10 +819,10 @@
                 }
             });
 
-            // 調整落款驗證邏輯
             if (!document.getElementById('checkboxCompanyArrangement').checked && !document.getElementById('dedication').value) {
                 document.getElementById('dedication').classList.add('error');
                 isValid = false;
+                errorMessages.push('請填寫落款或勾選「公司安排」。');
             }
 
             if (!hasSelectedProduct) {
@@ -835,7 +854,7 @@
                 errorMessages.push('請選擇收據或發票資訊。');
             } else {
                 if (selectedReceiptType.value === 'receipt') {
-                    const receiptFields = ['receiptRecipient', 'receiptPhone', 'receiptAddress'];
+                    const receiptFields = ['receiptRecipient', 'receiptPhone', 'receiptCounty', 'receiptDistrict', 'receiptAddress'];
                     receiptFields.forEach(id => {
                         const input = document.getElementById(id);
                         if (!input.value) {
@@ -845,7 +864,6 @@
                         }
                     });
                 } else if (selectedReceiptType.value === 'invoice') {
-                    // 調整發票驗證欄位
                     const invoiceFields = ['invoiceTitle', 'invoiceTaxId', 'invoiceCounty', 'invoiceDistrict', 'invoiceAddress', 'invoicePhone'];
                     invoiceFields.forEach(id => {
                         const input = document.getElementById(id);
@@ -919,6 +937,8 @@
                         type: 'receipt',
                         recipient: document.getElementById('receiptRecipient').value,
                         phone: document.getElementById('receiptPhone').value,
+                        county: document.getElementById('receiptCounty').value,
+                        district: document.getElementById('receiptDistrict').value,
                         address: document.getElementById('receiptAddress').value
                     };
                 } else if (selectedReceiptType.value === 'invoice') {
@@ -931,7 +951,7 @@
                         address: document.getElementById('invoiceAddress').value,
                         phone: document.getElementById('invoicePhone').value
                     };
-                } else if (selectedReceiptType.value === 'noNeed') { // 新增不需要
+                } else if (selectedReceiptType.value === 'noNeed') {
                     orderData.receiptInfo = {
                         type: 'noNeed'
                     };
@@ -965,4 +985,3 @@
     </script>
 </body>
 </html>
-
