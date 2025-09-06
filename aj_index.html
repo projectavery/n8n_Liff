@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-2</title>
+    <title>悼念花籃訂購單</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -288,14 +288,14 @@
                 <label for="dedication">落款</label>
                 <div class="dedication-flex-container">
                     <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
-                    
                 </div>
+
                 <div class="checkbox-group">
                     <label>
-                        <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement"> 公司安排
+                        <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement"> 公司安排 (落款若想由公司安排請選我)
                     </label>
                 </div>
-                
+
                 <label for="funeralVenue">告別式場館</label>
                 <select id="funeralVenue" name="funeralVenue" required onchange="updateHallSelect()">
                     <option value="" disabled selected>請選擇場館</option>
@@ -566,6 +566,8 @@
                         select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
                     } else if (select.id === 'invoiceCounty' || select.id === 'receiptCounty') {
                         select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
+                    } else if (select.id === 'invoiceDistrict' || select.id === 'receiptDistrict') {
+                        select.innerHTML = '<option value="" disabled selected>請先選擇縣市</option>';
                     } else {
                         select.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
                     }
@@ -729,17 +731,18 @@
             });
         });
 
-        // 修正後的 JavaScript 邏輯
         const companyArrangementCheckbox = document.getElementById('checkboxCompanyArrangement');
         const dedicationInput = document.getElementById('dedication');
         
         companyArrangementCheckbox.addEventListener('change', (event) => {
             if (event.target.checked) {
                 dedicationInput.value = '公司安排';
-                dedicationInput.readOnly = true; // 設定為唯讀
+                dedicationInput.readOnly = true;
+                dedicationInput.style.backgroundColor = '#e9ecef'; // 新增：將背景變為灰色
             } else {
                 dedicationInput.value = '';
-                dedicationInput.readOnly = false; // 取消唯讀
+                dedicationInput.readOnly = false;
+                dedicationInput.style.backgroundColor = '#fff'; // 新增：恢復背景為白色
             }
         });
 
@@ -995,4 +998,3 @@
     </script>
 </body>
 </html>
-
