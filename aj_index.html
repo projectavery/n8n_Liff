@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單</title>
+    <title>悼念花籃訂購單-1</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -249,11 +249,17 @@
             background-color: #f0f8ff;
             margin-top: 10px;
         }
-        .dedication-group {
+        /* 新增的樣式 */
+        .dedication-flex-container {
             display: flex;
-            align-items: center;
+            align-items: flex-end; /* 將勾選框與輸入框底部對齊 */
             gap: 10px;
-            margin-bottom: 10px;
+            width: 100%;
+        }
+        /* 調整勾選框群組，使其與輸入框高度對齊 */
+        .dedication-flex-container .checkbox-group {
+            margin-bottom: 20px; /* 匹配輸入框的 margin-bottom */
+            width: auto;
         }
     </style>
 </head>
@@ -279,13 +285,14 @@
                 <label for="deceasedName">案名</label>
                 <input type="text" id="deceasedName" name="deceasedName" required placeholder="請輸入亡者姓名">
 
-                <div class="dedication-group">
-                    <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement">
-                    <label for="checkboxCompanyArrangement" style="margin-bottom: 0;">公司安排</label>
-                </div>
-                <div id="dedication-input-group">
-                    <label for="dedication">落款</label>
+                <label for="dedication">落款</label>
+                <div class="dedication-flex-container">
                     <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement"> 公司安排
+                        </label>
+                    </div>
                 </div>
 
                 <label for="funeralVenue">告別式場館</label>
@@ -721,16 +728,17 @@
             });
         });
 
+        // 修正後的 JavaScript 邏輯
         const companyArrangementCheckbox = document.getElementById('checkboxCompanyArrangement');
-        const dedicationInputGroup = document.getElementById('dedication-input-group');
         const dedicationInput = document.getElementById('dedication');
+        
         companyArrangementCheckbox.addEventListener('change', (event) => {
             if (event.target.checked) {
-                dedicationInputGroup.style.display = 'none';
                 dedicationInput.value = '公司安排';
+                dedicationInput.readOnly = true; // 設定為唯讀
             } else {
-                dedicationInputGroup.style.display = 'block';
                 dedicationInput.value = '';
+                dedicationInput.readOnly = false; // 取消唯讀
             }
         });
 
@@ -819,6 +827,7 @@
                 }
             });
 
+            // 修正後：檢查落款欄位，如果沒有勾選公司安排，就必須填寫
             if (!document.getElementById('checkboxCompanyArrangement').checked && !document.getElementById('dedication').value) {
                 document.getElementById('dedication').classList.add('error');
                 isValid = false;
