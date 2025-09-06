@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-4</title>
+    <title>悼念花籃訂購單-5</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -837,6 +837,27 @@
         }
     });
 
+    // 新增：處理收據/發票資訊
+    if (selectedReceiptType) {
+        if (selectedReceiptType.value === 'receipt') {
+            orderData.receiptInfo = {
+                type: 'receipt',
+                recipient: document.getElementById('receiptRecipient').value,
+                phone: document.getElementById('receiptPhone').value,
+                address: document.getElementById('receiptAddress').value
+            };
+        } else if (selectedReceiptType.value === 'invoice') {
+            orderData.receiptInfo = {
+                type: 'invoice',
+                title: document.getElementById('invoiceTitle').value,
+                taxId: document.getElementById('invoiceTaxId').value,
+                address: document.getElementById('invoiceAddress').value,
+                phone: document.getElementById('invoicePhone').value
+            };
+        }
+    }
+    // 結束
+
     orderData.totalAmount = document.getElementById('totalAmount').value;
 
     try {
@@ -865,4 +886,5 @@
     </script>
 </body>
 </html>
+
 
