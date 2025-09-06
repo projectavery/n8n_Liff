@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-1</title>
+    <title>悼念花籃訂購單-2</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -288,13 +288,14 @@
                 <label for="dedication">落款</label>
                 <div class="dedication-flex-container">
                     <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
-                    <div class="checkbox-group">
-                        <label>
-                            <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement"> 公司安排
-                        </label>
-                    </div>
+                    
                 </div>
-
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement"> 公司安排
+                    </label>
+                </div>
+                
                 <label for="funeralVenue">告別式場館</label>
                 <select id="funeralVenue" name="funeralVenue" required onchange="updateHallSelect()">
                     <option value="" disabled selected>請選擇場館</option>
@@ -994,3 +995,4 @@
     </script>
 </body>
 </html>
+
