@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單</title>
+    <title>悼念花籃訂購單-1</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -249,6 +249,12 @@
             background-color: #f0f8ff;
             margin-top: 10px;
         }
+        .dedication-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -273,9 +279,15 @@
                 <label for="deceasedName">案名</label>
                 <input type="text" id="deceasedName" name="deceasedName" required placeholder="請輸入亡者姓名">
 
-                <label for="dedication">落款</label>
-                <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
-                
+                <div class="dedication-group">
+                    <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement">
+                    <label for="checkboxCompanyArrangement" style="margin-bottom: 0;">公司安排</label>
+                </div>
+                <div id="dedication-input-group">
+                    <label for="dedication">落款</label>
+                    <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
+                </div>
+
                 <label for="funeralVenue">告別式場館</label>
                 <select id="funeralVenue" name="funeralVenue" required onchange="updateHallSelect()">
                     <option value="" disabled selected>請選擇場館</option>
@@ -345,7 +357,6 @@
                     </div>
                 </div>
 
-                
                 <div id="fruitBasketDetails" class="product-details">
                     <h3>水果籃</h3>
                     <img id="fruitBasketImage" src="" alt="水果籃照片" class="product-image" style="display: none;">
@@ -383,6 +394,9 @@
                         <label>
                             <input type="radio" name="receiptType" value="invoice"> 發票 (加 5% 營業稅)
                         </label>
+                        <label>
+                            <input type="radio" name="receiptType" value="noNeed"> 不需要
+                        </label>
                     </div>
 
                     <div id="receipt-details" class="details-section" style="display: none;">
@@ -399,6 +413,16 @@
                         <input type="text" id="invoiceTitle" name="invoiceTitle" placeholder="請輸入公司行號或機關團體名稱">
                         <label for="invoiceTaxId">統一編號</label>
                         <input type="text" id="invoiceTaxId" name="invoiceTaxId" placeholder="請輸入統一編號">
+                        <div class="form-row">
+                            <div>
+                                <label for="invoiceCounty">縣市</label>
+                                <select id="invoiceCounty" name="invoiceCounty" required onchange="updateDistrictSelect()"></select>
+                            </div>
+                            <div>
+                                <label for="invoiceDistrict">鄉鎮市區</label>
+                                <select id="invoiceDistrict" name="invoiceDistrict" required></select>
+                            </div>
+                        </div>
                         <label for="invoiceAddress">地址</label>
                         <input type="text" id="invoiceAddress" name="invoiceAddress" placeholder="請輸入公司地址">
                         <label for="invoicePhone">電話</label>
@@ -432,26 +456,29 @@
     </div>
 
     <script>
-        // !! 請將 'YOUR_WEB_APP_URL_HERE' 替換成您部署後的 Web App URL !!
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqSMStYRtC8OFuN3W8jC9Y_3NYtsZWSUPaEkXfyA6qGNrRe0-CGMeTPnZqNO9wYDKj/exec";
-        
-        // !! 請將 'YOUR_LINE_OA_ID_HERE' 替換成您的 LINE 官方帳號 ID !!
         const LINE_OA_ID = "@658byecv";
-        // Webhook URL
         const WEBHOOK_URL = "https://projectboy-n8n-free.hf.space/webhook/AJ_buy";
 
         let venueAndHallData;
         let productData;
-        let lineProfile = {}; // 新增：用於儲存 LINE 資訊
+        let lineProfile = {};
 
-        // 主要的 LIFF 初始化函式
+        // 新增縣市與鄉鎮市區資料
+        const countyDistrictData = {
+            "臺北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
+            "新北市": ["板橋區", "新莊區", "中和區", "永和區", "土城區", "蘆洲區", "三重區", "樹林區", "鶯歌區", "三峽區", "淡水區", "汐止區", "瑞芳區", "五股區", "泰山區", "林口區", "深坑區", "石碇區", "坪林區", "三芝區", "石門區", "八里區", "平溪區", "雙溪區", "貢寮區", "金山區", "萬里區", "烏來區"],
+            "桃園市": ["桃園區", "中壢區", "大溪區", "楊梅區", "蘆竹區", "大園區", "龜山區", "八德區", "龍潭區", "平鎮區", "新屋區", "觀音區", "復興區"],
+            "臺中市": ["中區", "東區", "南區", "西區", "北區", "西屯區", "南屯區", "北屯區", "豐原區", "大里區", "太平區", "清水區", "沙鹿區", "大甲區", "東勢區", "梧棲區", "后里區", "神岡區", "潭子區", "大雅區", "新社區", "石岡區", "外埔區", "大安區", "烏日區", "大肚區", "龍井區", "霧峰區", "林森區"],
+            "高雄市": ["新興區", "前金區", "苓雅區", "鹽埕區", "鼓山區", "旗津區", "前鎮區", "三民區", "楠梓區", "小港區", "左營區", "仁武區", "大寮區", "岡山區", "路竹區", "阿蓮區", "田寮區", "燕巢區", "橋頭區", "梓官區", "彌陀區", "永安區", "湖內區", "鳳山區", "大樹區", "旗山區", "美濃區", "六龜區", "甲仙區", "杉林區", "內門區", "茂林區", "桃源區", "那瑪夏區", "鳥松區", "潮寮區"]
+        };
+
         async function initializeLiff() {
             try {
                 if (!liff.isInClient()) {
                     showCustomAlert('開啟方式錯誤 🚫', '此網頁需在 LINE 應用程式內開啟。');
                     return;
                 }
-
                 await liff.init({
                     liffId: "2008028302-Xe2G97Pw"
                 });
@@ -461,6 +488,7 @@
                         document.getElementById('main-form-container').classList.add('active');
                         await getLineProfile();
                         loadFormData();
+                        populateCountySelect(); // 新增：載入縣市選單
                     } else {
                         showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友。', () => {
                             liff.openWindow({
@@ -496,6 +524,7 @@
             setFormLoadingState(true);
             initializeLiff();
         });
+
         async function loadFormData() {
             try {
                 const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
@@ -521,6 +550,8 @@
                     select.disabled = true;
                     select.classList.add('loading-select');
                     if (select.id === 'funeralVenue') {
+                        select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
+                    } else if (select.id === 'invoiceCounty') {
                         select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
                     } else {
                         select.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
@@ -559,6 +590,35 @@
                     option.value = hall;
                     option.textContent = hall;
                     hallSelect.appendChild(option);
+                });
+            }
+        }
+
+        // 新增縣市選單填充函式
+        function populateCountySelect() {
+            const countySelect = document.getElementById('invoiceCounty');
+            countySelect.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
+            for (const county in countyDistrictData) {
+                const option = document.createElement('option');
+                option.value = county;
+                option.textContent = county;
+                countySelect.appendChild(option);
+            }
+        }
+        
+        // 新增鄉鎮市區選單更新函式
+        function updateDistrictSelect() {
+            const countySelect = document.getElementById('invoiceCounty');
+            const districtSelect = document.getElementById('invoiceDistrict');
+            const selectedCounty = countySelect.value;
+            districtSelect.innerHTML = '<option value="" disabled selected>請選擇鄉鎮市區</option>';
+            if (selectedCounty && countyDistrictData[selectedCounty]) {
+                const districts = countyDistrictData[selectedCounty];
+                districts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district;
+                    option.textContent = district;
+                    districtSelect.appendChild(option);
                 });
             }
         }
@@ -636,12 +696,29 @@
                 if (radio.value === 'receipt') {
                     receiptDetails.style.display = 'block';
                     invoiceDetails.style.display = 'none';
-                } else {
+                } else if (radio.value === 'invoice') {
                     receiptDetails.style.display = 'none';
                     invoiceDetails.style.display = 'block';
+                } else { // 新增：處理 不需要
+                    receiptDetails.style.display = 'none';
+                    invoiceDetails.style.display = 'none';
                 }
                 calculateTotal();
             });
+        });
+
+        // 新增落款「公司安排」的邏輯
+        const companyArrangementCheckbox = document.getElementById('checkboxCompanyArrangement');
+        const dedicationInputGroup = document.getElementById('dedication-input-group');
+        const dedicationInput = document.getElementById('dedication');
+        companyArrangementCheckbox.addEventListener('change', (event) => {
+            if (event.target.checked) {
+                dedicationInputGroup.style.display = 'none';
+                dedicationInput.value = '公司安排';
+            } else {
+                dedicationInputGroup.style.display = 'block';
+                dedicationInput.value = '';
+            }
         });
 
         function calculateTotal() {
@@ -652,7 +729,6 @@
                 const price = parseFloat(document.getElementById(`${type}Price`).value) || 0;
                 total += qty * price;
             });
-
             const selectedReceiptType = document.querySelector('input[name="receiptType"]:checked');
             if (selectedReceiptType && selectedReceiptType.value === 'invoice') {
                 total = total * 1.05;
@@ -700,7 +776,6 @@
             }
         }
 
-        // 根據新的規則生成訂單編號
         function generateOrderNumber() {
             const now = new Date();
             const year = String(now.getFullYear()).slice(-2);
@@ -714,179 +789,185 @@
         }
 
         document.getElementById('aj_index').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    let isValid = true;
-    const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'dedication', 'lastFiveDigits'];
-    const errorMessages = [];
-    const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
-    const selectedReceiptType = document.querySelector('input[name="receiptType"]:checked');
-    
-    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+            event.preventDefault();
+            let isValid = true;
+            const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'lastFiveDigits'];
+            const errorMessages = [];
+            const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
+            const selectedReceiptType = document.querySelector('input[name="receiptType"]:checked');
+            
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
 
-    requiredFields.forEach(id => {
-        const input = document.getElementById(id);
-        if (!input.value) {
-            input.classList.add('error');
-            isValid = false;
-        }
-    });
-
-    if (!hasSelectedProduct) {
-        errorMessages.push('請至少勾選一項商品類別。');
-        isValid = false;
-    } else {
-        const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
-        productTypes.forEach(type => {
-            const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
-            if (checkbox.checked) {
-                const styleSelect = document.getElementById(`${type}Style`);
-                const qtyInput = document.getElementById(`${type}Qty`);
-                if (!styleSelect.value) {
-                    styleSelect.classList.add('error');
-                    isValid = false;
-                    errorMessages.push(`請選擇「${styleSelect.previousElementSibling.textContent}」。`);
-                }
-                if (parseInt(qtyInput.value) <= 0) {
-                    qtyInput.classList.add('error');
-                    isValid = false;
-                    errorMessages.push(`「${qtyInput.previousElementSibling.textContent}」必須大於0。`);
-                }
-            }
-        });
-    }
-
-    if (!selectedReceiptType) {
-        isValid = false;
-        errorMessages.push('請選擇收據或發票資訊。');
-    } else {
-        if (selectedReceiptType.value === 'receipt') {
-            const receiptFields = ['receiptRecipient', 'receiptPhone', 'receiptAddress'];
-            receiptFields.forEach(id => {
+            requiredFields.forEach(id => {
                 const input = document.getElementById(id);
                 if (!input.value) {
                     input.classList.add('error');
                     isValid = false;
-                    errorMessages.push(`請填寫「收據」資訊中的「${input.previousElementSibling.textContent.replace('：', '')}」。`);
                 }
             });
-        } else if (selectedReceiptType.value === 'invoice') {
-            const invoiceFields = ['invoiceTitle', 'invoiceTaxId', 'invoiceAddress', 'invoicePhone'];
-            invoiceFields.forEach(id => {
-                const input = document.getElementById(id);
-                if (!input.value) {
-                    input.classList.add('error');
-                    isValid = false;
-                    errorMessages.push(`請填寫「發票」資訊中的「${input.previousElementSibling.textContent.replace('：', '')}」。`);
-                }
-            });
-        }
-    }
 
-    const totalAmount = parseFloat(document.getElementById('totalAmount').value);
-    if (totalAmount === 0 && hasSelectedProduct) {
-        isValid = false;
-        errorMessages.push('合計金額為0，請確認您的選擇。');
-    }
-
-    const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
-    if (lastFiveDigitsInput.value.trim().length !== 5) {
-        lastFiveDigitsInput.classList.add('error');
-        isValid = false;
-        errorMessages.push('轉帳後五碼必須為五位數字。');
-    }
-    
-    if (!isValid) {
-        showCustomAlert('訂單填寫有誤 ⚠️', [...new Set(errorMessages)].join('\n'));
-        return;
-    }
-
-    setSubmitButtonState(true);
-
-    const formData = new FormData(this);
-    const orderData = {};
-    formData.forEach((value, key) => {
-        if (value) {
-            orderData[key] = value;
-        }
-    });
-    orderData.orderNumber = generateOrderNumber();
-
-    orderData.lineProfile = {
-        uid: lineProfile.userId,
-        displayName: lineProfile.displayName
-    };
-    orderData.products = {};
-    const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
-    productTypes.forEach(type => {
-        const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
-        if (checkbox.checked) {
-            const style = document.getElementById(`${type}Style`).value;
-            const qty = document.getElementById(`${type}Qty`).value;
-            const price = document.getElementById(`${type}Price`).value;
-            if (style && qty > 0) {
-                const categoryMap = { 'flowerBasket': '花籃', 'wreath': '籃花', 'fruitBasket': '水果籃' };
-                const category = categoryMap[type];
-                const photoUrl = productData[category]?.[style]?.photoUrl || '';
-                orderData.products[type] = {
-                    style: style,
-                    qty: qty,
-                    price: price,
-                    photoUrl: photoUrl
-                };
+            // 調整落款驗證邏輯
+            if (!document.getElementById('checkboxCompanyArrangement').checked && !document.getElementById('dedication').value) {
+                document.getElementById('dedication').classList.add('error');
+                isValid = false;
             }
-        }
-    });
 
-    // 新增：處理收據/發票資訊
-    if (selectedReceiptType) {
-        if (selectedReceiptType.value === 'receipt') {
-            orderData.receiptInfo = {
-                type: 'receipt',
-                recipient: document.getElementById('receiptRecipient').value,
-                phone: document.getElementById('receiptPhone').value,
-                address: document.getElementById('receiptAddress').value
-            };
-        } else if (selectedReceiptType.value === 'invoice') {
-            orderData.receiptInfo = {
-                type: 'invoice',
-                title: document.getElementById('invoiceTitle').value,
-                taxId: document.getElementById('invoiceTaxId').value,
-                address: document.getElementById('invoiceAddress').value,
-                phone: document.getElementById('invoicePhone').value
-            };
-        }
-    }
-    // 結束
+            if (!hasSelectedProduct) {
+                errorMessages.push('請至少勾選一項商品類別。');
+                isValid = false;
+            } else {
+                const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+                productTypes.forEach(type => {
+                    const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
+                    if (checkbox.checked) {
+                        const styleSelect = document.getElementById(`${type}Style`);
+                        const qtyInput = document.getElementById(`${type}Qty`);
+                        if (!styleSelect.value) {
+                            styleSelect.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`請選擇「${styleSelect.previousElementSibling.textContent}」。`);
+                        }
+                        if (parseInt(qtyInput.value) <= 0) {
+                            qtyInput.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`「${qtyInput.previousElementSibling.textContent}」必須大於0。`);
+                        }
+                    }
+                });
+            }
 
-    orderData.totalAmount = document.getElementById('totalAmount').value;
+            if (!selectedReceiptType) {
+                isValid = false;
+                errorMessages.push('請選擇收據或發票資訊。');
+            } else {
+                if (selectedReceiptType.value === 'receipt') {
+                    const receiptFields = ['receiptRecipient', 'receiptPhone', 'receiptAddress'];
+                    receiptFields.forEach(id => {
+                        const input = document.getElementById(id);
+                        if (!input.value) {
+                            input.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`請填寫「收據」資訊中的「${input.previousElementSibling.textContent.replace('：', '')}」。`);
+                        }
+                    });
+                } else if (selectedReceiptType.value === 'invoice') {
+                    // 調整發票驗證欄位
+                    const invoiceFields = ['invoiceTitle', 'invoiceTaxId', 'invoiceCounty', 'invoiceDistrict', 'invoiceAddress', 'invoicePhone'];
+                    invoiceFields.forEach(id => {
+                        const input = document.getElementById(id);
+                        if (!input.value) {
+                            input.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`請填寫「發票」資訊中的「${input.previousElementSibling.textContent.replace('：', '')}」。`);
+                        }
+                    });
+                }
+            }
 
-    try {
-        const response = await fetch(WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderData),
-        });
-        if (response.ok) {
-            showCustomAlert('訂單送出成功 🎉', '稍後將有專人與您連繫，謝謝。', () => {
-                liff.closeWindow();
+            const totalAmount = parseFloat(document.getElementById('totalAmount').value);
+            if (totalAmount === 0 && hasSelectedProduct) {
+                isValid = false;
+                errorMessages.push('合計金額為0，請確認您的選擇。');
+            }
+
+            const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
+            if (lastFiveDigitsInput.value.trim().length !== 5) {
+                lastFiveDigitsInput.classList.add('error');
+                isValid = false;
+                errorMessages.push('轉帳後五碼必須為五位數字。');
+            }
+            
+            if (!isValid) {
+                showCustomAlert('訂單填寫有誤 ⚠️', [...new Set(errorMessages)].join('\n'));
+                return;
+            }
+
+            setSubmitButtonState(true);
+
+            const formData = new FormData(this);
+            const orderData = {};
+            formData.forEach((value, key) => {
+                if (value) {
+                    orderData[key] = value;
+                }
             });
-        } else {
-            const errorText = await response.text();
-            throw new Error(`伺服器回應錯誤: ${response.status} - ${errorText}`);
-        }
-    } catch (error) {
-        console.error('送出訂單時發生錯誤:', error);
-        showCustomAlert('送出失敗 😥', '傳送訂單時發生問題，請稍後再試。');
-    } finally {
-        setSubmitButtonState(false);
-    }
-});
+            orderData.orderNumber = generateOrderNumber();
+
+            orderData.lineProfile = {
+                uid: lineProfile.userId,
+                displayName: lineProfile.displayName
+            };
+            orderData.products = {};
+            const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+            productTypes.forEach(type => {
+                const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
+                if (checkbox.checked) {
+                    const style = document.getElementById(`${type}Style`).value;
+                    const qty = document.getElementById(`${type}Qty`).value;
+                    const price = document.getElementById(`${type}Price`).value;
+                    if (style && qty > 0) {
+                        const categoryMap = { 'flowerBasket': '花籃', 'wreath': '籃花', 'fruitBasket': '水果籃' };
+                        const category = categoryMap[type];
+                        const photoUrl = productData[category]?.[style]?.photoUrl || '';
+                        orderData.products[type] = {
+                            style: style,
+                            qty: qty,
+                            price: price,
+                            photoUrl: photoUrl
+                        };
+                    }
+                }
+            });
+
+            if (selectedReceiptType) {
+                if (selectedReceiptType.value === 'receipt') {
+                    orderData.receiptInfo = {
+                        type: 'receipt',
+                        recipient: document.getElementById('receiptRecipient').value,
+                        phone: document.getElementById('receiptPhone').value,
+                        address: document.getElementById('receiptAddress').value
+                    };
+                } else if (selectedReceiptType.value === 'invoice') {
+                    orderData.receiptInfo = {
+                        type: 'invoice',
+                        title: document.getElementById('invoiceTitle').value,
+                        taxId: document.getElementById('invoiceTaxId').value,
+                        county: document.getElementById('invoiceCounty').value, // 新增縣市
+                        district: document.getElementById('invoiceDistrict').value, // 新增鄉鎮市區
+                        address: document.getElementById('invoiceAddress').value,
+                        phone: document.getElementById('invoicePhone').value
+                    };
+                } else if (selectedReceiptType.value === 'noNeed') { // 新增不需要
+                    orderData.receiptInfo = {
+                        type: 'noNeed'
+                    };
+                }
+            }
+            
+            orderData.totalAmount = document.getElementById('totalAmount').value;
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData),
+                });
+                if (response.ok) {
+                    showCustomAlert('訂單送出成功 🎉', '稍後將有專人與您連繫，謝謝。', () => {
+                        liff.closeWindow();
+                    });
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`伺服器回應錯誤: ${response.status} - ${errorText}`);
+                }
+            } catch (error) {
+                console.error('送出訂單時發生錯誤:', error);
+                showCustomAlert('送出失敗 😥', '傳送訂單時發生問題，請稍後再試。');
+            } finally {
+                setSubmitButtonState(false);
+            }
+        });
     </script>
 </body>
 </html>
-
-
-
-
