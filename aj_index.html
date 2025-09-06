@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-1</title>
+    <title>悼念花籃訂購單-2</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -249,12 +249,6 @@
             background-color: #f0f8ff;
             margin-top: 10px;
         }
-        .dedication-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
@@ -279,15 +273,9 @@
                 <label for="deceasedName">案名</label>
                 <input type="text" id="deceasedName" name="deceasedName" required placeholder="請輸入亡者姓名">
 
-                <div class="dedication-group">
-                    <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement">
-                    <label for="checkboxCompanyArrangement" style="margin-bottom: 0;">公司安排</label>
-                </div>
-                <div id="dedication-input-group">
-                    <label for="dedication">落款</label>
-                    <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
-                </div>
-
+                <label for="dedication">落款</label>
+                <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
+                
                 <label for="funeralVenue">告別式場館</label>
                 <select id="funeralVenue" name="funeralVenue" required onchange="updateHallSelect()">
                     <option value="" disabled selected>請選擇場館</option>
@@ -394,9 +382,6 @@
                         <label>
                             <input type="radio" name="receiptType" value="invoice"> 發票 (加 5% 營業稅)
                         </label>
-                        <label>
-                            <input type="radio" name="receiptType" value="noNeed"> 不需要
-                        </label>
                     </div>
 
                     <div id="receipt-details" class="details-section" style="display: none;">
@@ -462,16 +447,8 @@
 
         let venueAndHallData;
         let productData;
+        let countyDistrictData; // 新增：用於儲存縣市及鄉鎮市區資料
         let lineProfile = {};
-
-        // 新增縣市與鄉鎮市區資料
-        const countyDistrictData = {
-            "臺北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
-            "新北市": ["板橋區", "新莊區", "中和區", "永和區", "土城區", "蘆洲區", "三重區", "樹林區", "鶯歌區", "三峽區", "淡水區", "汐止區", "瑞芳區", "五股區", "泰山區", "林口區", "深坑區", "石碇區", "坪林區", "三芝區", "石門區", "八里區", "平溪區", "雙溪區", "貢寮區", "金山區", "萬里區", "烏來區"],
-            "桃園市": ["桃園區", "中壢區", "大溪區", "楊梅區", "蘆竹區", "大園區", "龜山區", "八德區", "龍潭區", "平鎮區", "新屋區", "觀音區", "復興區"],
-            "臺中市": ["中區", "東區", "南區", "西區", "北區", "西屯區", "南屯區", "北屯區", "豐原區", "大里區", "太平區", "清水區", "沙鹿區", "大甲區", "東勢區", "梧棲區", "后里區", "神岡區", "潭子區", "大雅區", "新社區", "石岡區", "外埔區", "大安區", "烏日區", "大肚區", "龍井區", "霧峰區", "林森區"],
-            "高雄市": ["新興區", "前金區", "苓雅區", "鹽埕區", "鼓山區", "旗津區", "前鎮區", "三民區", "楠梓區", "小港區", "左營區", "仁武區", "大寮區", "岡山區", "路竹區", "阿蓮區", "田寮區", "燕巢區", "橋頭區", "梓官區", "彌陀區", "永安區", "湖內區", "鳳山區", "大樹區", "旗山區", "美濃區", "六龜區", "甲仙區", "杉林區", "內門區", "茂林區", "桃源區", "那瑪夏區", "鳥松區", "潮寮區"]
-        };
 
         async function initializeLiff() {
             try {
@@ -488,7 +465,6 @@
                         document.getElementById('main-form-container').classList.add('active');
                         await getLineProfile();
                         loadFormData();
-                        populateCountySelect(); // 新增：載入縣市選單
                     } else {
                         showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友。', () => {
                             liff.openWindow({
@@ -534,6 +510,11 @@
                 const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
                 productData = await productResponse.json();
                 populateProductSelects();
+
+                // 新增：載入縣市與鄉鎮市區資料
+                const countyDistrictResponse = await fetch(`${WEB_APP_URL}?dataType=countyDistrict`);
+                countyDistrictData = await countyDistrictResponse.json();
+                populateCountySelect();
 
                 setFormLoadingState(false);
             } catch (error) {
@@ -594,19 +575,21 @@
             }
         }
 
-        // 新增縣市選單填充函式
+        // 縣市選單填充函式
         function populateCountySelect() {
             const countySelect = document.getElementById('invoiceCounty');
             countySelect.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
-            for (const county in countyDistrictData) {
-                const option = document.createElement('option');
-                option.value = county;
-                option.textContent = county;
-                countySelect.appendChild(option);
+            if (countyDistrictData) {
+                for (const county in countyDistrictData) {
+                    const option = document.createElement('option');
+                    option.value = county;
+                    option.textContent = county;
+                    countySelect.appendChild(option);
+                }
             }
         }
-        
-        // 新增鄉鎮市區選單更新函式
+
+        // 鄉鎮市區選單更新函式
         function updateDistrictSelect() {
             const countySelect = document.getElementById('invoiceCounty');
             const districtSelect = document.getElementById('invoiceDistrict');
@@ -696,29 +679,12 @@
                 if (radio.value === 'receipt') {
                     receiptDetails.style.display = 'block';
                     invoiceDetails.style.display = 'none';
-                } else if (radio.value === 'invoice') {
+                } else {
                     receiptDetails.style.display = 'none';
                     invoiceDetails.style.display = 'block';
-                } else { // 新增：處理 不需要
-                    receiptDetails.style.display = 'none';
-                    invoiceDetails.style.display = 'none';
                 }
                 calculateTotal();
             });
-        });
-
-        // 新增落款「公司安排」的邏輯
-        const companyArrangementCheckbox = document.getElementById('checkboxCompanyArrangement');
-        const dedicationInputGroup = document.getElementById('dedication-input-group');
-        const dedicationInput = document.getElementById('dedication');
-        companyArrangementCheckbox.addEventListener('change', (event) => {
-            if (event.target.checked) {
-                dedicationInputGroup.style.display = 'none';
-                dedicationInput.value = '公司安排';
-            } else {
-                dedicationInputGroup.style.display = 'block';
-                dedicationInput.value = '';
-            }
         });
 
         function calculateTotal() {
@@ -791,7 +757,7 @@
         document.getElementById('aj_index').addEventListener('submit', async function(event) {
             event.preventDefault();
             let isValid = true;
-            const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'lastFiveDigits'];
+            const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'dedication', 'lastFiveDigits'];
             const errorMessages = [];
             const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
             const selectedReceiptType = document.querySelector('input[name="receiptType"]:checked');
@@ -805,12 +771,6 @@
                     isValid = false;
                 }
             });
-
-            // 調整落款驗證邏輯
-            if (!document.getElementById('checkboxCompanyArrangement').checked && !document.getElementById('dedication').value) {
-                document.getElementById('dedication').classList.add('error');
-                isValid = false;
-            }
 
             if (!hasSelectedProduct) {
                 errorMessages.push('請至少勾選一項商品類別。');
@@ -851,7 +811,6 @@
                         }
                     });
                 } else if (selectedReceiptType.value === 'invoice') {
-                    // 調整發票驗證欄位
                     const invoiceFields = ['invoiceTitle', 'invoiceTaxId', 'invoiceCounty', 'invoiceDistrict', 'invoiceAddress', 'invoicePhone'];
                     invoiceFields.forEach(id => {
                         const input = document.getElementById(id);
@@ -936,10 +895,6 @@
                         district: document.getElementById('invoiceDistrict').value, // 新增鄉鎮市區
                         address: document.getElementById('invoiceAddress').value,
                         phone: document.getElementById('invoicePhone').value
-                    };
-                } else if (selectedReceiptType.value === 'noNeed') { // 新增不需要
-                    orderData.receiptInfo = {
-                        type: 'noNeed'
                     };
                 }
             }
