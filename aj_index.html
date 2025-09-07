@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單</title>
+    <title>悼念花籃訂購單-1</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -291,7 +291,7 @@
                     <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
                 </div>
 
-                <div class="checkbox-group">
+                <div class="checkbox-group" style="display: none;">    // 新增：隱藏選擇
                     <label>
                         <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement"> 公司安排 (落款若想由公司安排請選我)
                     </label>
@@ -319,7 +319,7 @@
                     <label>
                         <input type="checkbox" id="checkboxWreath" name="productType" value="wreath"> 蝴蝶蘭
                     </label>
-                    <label style="display: none;">
+                    <label style="display: none;">  // 新增：隱藏選擇
                         <input type="checkbox" id="checkboxFruitBasket" name="productType" value="fruitBasket"> 水果籃
                     </label>
                 </div>
@@ -999,4 +999,5 @@
     </script>
 </body>
 </html>
+
 
