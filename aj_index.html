@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-2</title>
+    <title>悼念花籃訂購單-5</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -200,10 +200,8 @@
             animation: fadeIn 0.3s ease-out;
         }
         @keyframes fadeIn {
-            from { opacity: 0;
-            transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .modal-header h2 {
             font-size: 1.8em;
@@ -259,7 +257,8 @@
         }
         /* 調整勾選框群組，使其與輸入框高度對齊 */
         .dedication-flex-container .checkbox-group {
-            margin-bottom: 20px; /* 匹配輸入框的 margin-bottom */
+            margin-bottom: 20px;
+            /* 匹配輸入框的 margin-bottom */
             width: auto;
         }
     </style>
@@ -334,7 +333,6 @@
                                 <option value="" disabled selected>請選擇樣式</option>
                             </select>
                         </div>
-                        
                         <div>
                             <label for="flowerBasketEulogy">輓詞</label>
                             <input type="text" id="flowerBasketEulogy" name="flowerBasketEulogy" placeholder="例如：英容宛在、德澤長昭" required>
@@ -344,7 +342,6 @@
                                 <input type="checkbox" id="checkboxFlowerBasketEulogy" name="flowerBasketEulogy_company"> 公司安排 (輓詞若想由公司安排請選我)
                             </label>
                         </div>
-                        
                         <div>
                             <label for="flowerBasketPrice">單價</label>
                             <input type="text" id="flowerBasketPrice" class="price-box" value="0" readonly>
@@ -366,7 +363,6 @@
                                 <option value="" disabled selected>請選擇樣式</option>
                             </select>
                         </div>
-
                         <div>
                             <label for="wreathEulogy">輓詞</label>
                             <input type="text" id="wreathEulogy" name="wreathEulogy" placeholder="例如：英容宛在、德澤長昭" required>
@@ -376,7 +372,6 @@
                                 <input type="checkbox" id="checkboxWreathEulogy" name="wreathEulogy_company"> 公司安排 (輓詞若想由公司安排請選我)
                             </label>
                         </div>
-                        
                         <div>
                             <label for="wreathPrice">單價</label>
                             <input type="text" id="wreathPrice" class="price-box" value="0" readonly>
@@ -505,7 +500,6 @@
         let productData;
         let countyDistrictData;
         let lineProfile = {};
-
         async function initializeLiff() {
             try {
                 if (!liff.isInClient()) {
@@ -556,7 +550,6 @@
             setFormLoadingState(true);
             initializeLiff();
         });
-
         async function loadFormData() {
             try {
                 const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
@@ -638,7 +631,6 @@
             
             invoiceCountySelect.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
             receiptCountySelect.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
-
             if (countyDistrictData) {
                 for (const county in countyDistrictData) {
                     const optionInvoice = document.createElement('option');
@@ -714,34 +706,6 @@
             calculateTotal();
         }
 
-        // 花籃輓詞的公司安排功能
-document.getElementById('checkboxFlowerBasketEulogy').addEventListener('change', (event) => {
-    const eulogyInput = document.getElementById('flowerBasketEulogy');
-    if (event.target.checked) {
-        eulogyInput.value = '公司安排';
-        eulogyInput.readOnly = true;
-        eulogyInput.style.backgroundColor = '#e9ecef';
-    } else {
-        eulogyInput.value = '';
-        eulogyInput.readOnly = false;
-        eulogyInput.style.backgroundColor = '#fff';
-    }
-});
-
-// 蝴蝶蘭輓詞的公司安排功能
-document.getElementById('checkboxWreathEulogy').addEventListener('change', (event) => {
-    const eulogyInput = document.getElementById('wreathEulogy');
-    if (event.target.checked) {
-        eulogyInput.value = '公司安排';
-        eulogyInput.readOnly = true;
-        eulogyInput.style.backgroundColor = '#e9ecef';
-    } else {
-        eulogyInput.value = '';
-        eulogyInput.readOnly = false;
-        eulogyInput.style.backgroundColor = '#fff';
-    }
-});
-        
         const checkboxes = document.querySelectorAll('input[type="checkbox"][name="productType"]');
         checkboxes.forEach(checkbox => {
             checkbox.addEventListener('change', (event) => {
@@ -781,7 +745,6 @@ document.getElementById('checkboxWreathEulogy').addEventListener('change', (even
                 calculateTotal();
             });
         });
-
         const companyArrangementCheckbox = document.getElementById('checkboxCompanyArrangement');
         const dedicationInput = document.getElementById('dedication');
         
@@ -794,6 +757,34 @@ document.getElementById('checkboxWreathEulogy').addEventListener('change', (even
                 dedicationInput.value = '';
                 dedicationInput.readOnly = false;
                 dedicationInput.style.backgroundColor = '#fff'; // 新增：恢復背景為白色
+            }
+        });
+
+        // 新增：花籃輓詞的公司安排功能
+        document.getElementById('checkboxFlowerBasketEulogy').addEventListener('change', (event) => {
+            const eulogyInput = document.getElementById('flowerBasketEulogy');
+            if (event.target.checked) {
+                eulogyInput.value = '公司安排';
+                eulogyInput.readOnly = true;
+                eulogyInput.style.backgroundColor = '#e9ecef';
+            } else {
+                eulogyInput.value = '';
+                eulogyInput.readOnly = false;
+                eulogyInput.style.backgroundColor = '#fff';
+            }
+        });
+
+        // 新增：蝴蝶蘭輓詞的公司安排功能
+        document.getElementById('checkboxWreathEulogy').addEventListener('change', (event) => {
+            const eulogyInput = document.getElementById('wreathEulogy');
+            if (event.target.checked) {
+                eulogyInput.value = '公司安排';
+                eulogyInput.readOnly = true;
+                eulogyInput.style.backgroundColor = '#e9ecef';
+            } else {
+                eulogyInput.value = '';
+                eulogyInput.readOnly = false;
+                eulogyInput.style.backgroundColor = '#fff';
             }
         });
 
@@ -889,26 +880,6 @@ document.getElementById('checkboxWreathEulogy').addEventListener('change', (even
                 errorMessages.push('請填寫落款或勾選「公司安排」。');
             }
 
-            // 檢查花籃輓詞欄位
-const flowerBasketCheckbox = document.getElementById('checkboxFlowerBasket');
-const flowerBasketEulogyInput = document.getElementById('flowerBasketEulogy');
-const flowerBasketEulogyCompany = document.getElementById('checkboxFlowerBasketEulogy');
-if (flowerBasketCheckbox.checked && !flowerBasketEulogyCompany.checked && !flowerBasketEulogyInput.value) {
-    flowerBasketEulogyInput.classList.add('error');
-    isValid = false;
-    errorMessages.push('請填寫花籃輓詞或勾選「公司安排」。');
-}
-
-// 檢查蝴蝶蘭輓詞欄位
-const wreathCheckbox = document.getElementById('checkboxWreath');
-const wreathEulogyInput = document.getElementById('wreathEulogy');
-const wreathEulogyCompany = document.getElementById('checkboxWreathEulogy');
-if (wreathCheckbox.checked && !wreathEulogyCompany.checked && !wreathEulogyInput.value) {
-    wreathEulogyInput.classList.add('error');
-    isValid = false;
-    errorMessages.push('請填寫蝴蝶蘭輓詞或勾選「公司安排」。');
-}
-            
             if (!hasSelectedProduct) {
                 errorMessages.push('請至少勾選一項商品類別。');
                 isValid = false;
@@ -919,6 +890,10 @@ if (wreathCheckbox.checked && !wreathEulogyCompany.checked && !wreathEulogyInput
                     if (checkbox.checked) {
                         const styleSelect = document.getElementById(`${type}Style`);
                         const qtyInput = document.getElementById(`${type}Qty`);
+                        // 新增：檢查輓詞欄位
+                        const eulogyInput = document.getElementById(`${type}Eulogy`);
+                        const eulogyCompanyCheckbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}Eulogy`);
+
                         if (!styleSelect.value) {
                             styleSelect.classList.add('error');
                             isValid = false;
@@ -928,6 +903,11 @@ if (wreathCheckbox.checked && !wreathEulogyCompany.checked && !wreathEulogyInput
                             qtyInput.classList.add('error');
                             isValid = false;
                             errorMessages.push(`「${qtyInput.previousElementSibling.textContent}」必須大於0。`);
+                        }
+                        if (!eulogyCompanyCheckbox.checked && !eulogyInput.value) {
+                            eulogyInput.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`請填寫「${eulogyInput.previousElementSibling.textContent}」或勾選「公司安排」。`);
                         }
                     }
                 });
@@ -1001,6 +981,7 @@ if (wreathCheckbox.checked && !wreathEulogyCompany.checked && !wreathEulogyInput
                     const style = document.getElementById(`${type}Style`).value;
                     const qty = document.getElementById(`${type}Qty`).value;
                     const price = document.getElementById(`${type}Price`).value;
+                    const eulogy = document.getElementById(`${type}Eulogy`).value;
                     if (style && qty > 0) {
                         const categoryMap = { 'flowerBasket': '花籃', 'wreath': '籃花', 'fruitBasket': '水果籃' };
                         const category = categoryMap[type];
@@ -1009,13 +990,12 @@ if (wreathCheckbox.checked && !wreathEulogyCompany.checked && !wreathEulogyInput
                             style: style,
                             qty: qty,
                             price: price,
-                            photoUrl: photoUrl
-                            eulogy: document.getElementById(`${type}Eulogy`).value || '' // 新增此行
+                            photoUrl: photoUrl,
+                            eulogy: eulogy // 新增此行
                         };
                     }
                 }
             });
-
             if (selectedReceiptType) {
                 if (selectedReceiptType.value === 'receipt') {
                     orderData.receiptInfo = {
@@ -1070,6 +1050,3 @@ if (wreathCheckbox.checked && !wreathEulogyCompany.checked && !wreathEulogyInput
     </script>
 </body>
 </html>
-
-
-
