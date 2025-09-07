@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-5</title>
+    <title>悼念花籃訂購單</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -335,7 +335,7 @@
                         </div>
                         <div>
                             <label for="flowerBasketEulogy">輓詞</label>
-                            <input type="text" id="flowerBasketEulogy" name="flowerBasketEulogy" placeholder="例如：英容宛在、德澤長昭" required>
+                            <input type="text" id="flowerBasketEulogy" name="flowerBasketEulogy" placeholder="例如：英容宛在、德澤長昭">
                         </div>
                         <div class="checkbox-group">
                             <label>
@@ -365,7 +365,7 @@
                         </div>
                         <div>
                             <label for="wreathEulogy">輓詞</label>
-                            <input type="text" id="wreathEulogy" name="wreathEulogy" placeholder="例如：英容宛在、德澤長昭" required>
+                            <input type="text" id="wreathEulogy" name="wreathEulogy" placeholder="例如：英容宛在、德澤長昭">
                         </div>
                         <div class="checkbox-group">
                             <label>
@@ -904,10 +904,12 @@
                             isValid = false;
                             errorMessages.push(`「${qtyInput.previousElementSibling.textContent}」必須大於0。`);
                         }
-                        if (!eulogyCompanyCheckbox.checked && !eulogyInput.value) {
-                            eulogyInput.classList.add('error');
-                            isValid = false;
-                            errorMessages.push(`請填寫「${eulogyInput.previousElementSibling.textContent}」或勾選「公司安排」。`);
+                        if (type !== 'fruitBasket') { // 只對花籃和蝴蝶蘭檢查輓詞
+                            if (!eulogyCompanyCheckbox.checked && !eulogyInput.value) {
+                                eulogyInput.classList.add('error');
+                                isValid = false;
+                                errorMessages.push(`請填寫「${eulogyInput.previousElementSibling.textContent}」或勾選「公司安排」。`);
+                            }
                         }
                     }
                 });
