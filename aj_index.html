@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-1</title>
+    <title>悼念花籃訂購單-2</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -334,6 +334,17 @@
                                 <option value="" disabled selected>請選擇樣式</option>
                             </select>
                         </div>
+                        
+                        <div>
+                            <label for="flowerBasketEulogy">輓詞</label>
+                            <input type="text" id="flowerBasketEulogy" name="flowerBasketEulogy" placeholder="例如：英容宛在、德澤長昭" required>
+                        </div>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="checkboxFlowerBasketEulogy" name="flowerBasketEulogy_company"> 公司安排 (輓詞若想由公司安排請選我)
+                            </label>
+                        </div>
+                        
                         <div>
                             <label for="flowerBasketPrice">單價</label>
                             <input type="text" id="flowerBasketPrice" class="price-box" value="0" readonly>
@@ -355,6 +366,17 @@
                                 <option value="" disabled selected>請選擇樣式</option>
                             </select>
                         </div>
+
+                        <div>
+                            <label for="wreathEulogy">輓詞</label>
+                            <input type="text" id="wreathEulogy" name="wreathEulogy" placeholder="例如：英容宛在、德澤長昭" required>
+                        </div>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="checkboxWreathEulogy" name="wreathEulogy_company"> 公司安排 (輓詞若想由公司安排請選我)
+                            </label>
+                        </div>
+                        
                         <div>
                             <label for="wreathPrice">單價</label>
                             <input type="text" id="wreathPrice" class="price-box" value="0" readonly>
@@ -692,6 +714,34 @@
             calculateTotal();
         }
 
+        // 花籃輓詞的公司安排功能
+document.getElementById('checkboxFlowerBasketEulogy').addEventListener('change', (event) => {
+    const eulogyInput = document.getElementById('flowerBasketEulogy');
+    if (event.target.checked) {
+        eulogyInput.value = '公司安排';
+        eulogyInput.readOnly = true;
+        eulogyInput.style.backgroundColor = '#e9ecef';
+    } else {
+        eulogyInput.value = '';
+        eulogyInput.readOnly = false;
+        eulogyInput.style.backgroundColor = '#fff';
+    }
+});
+
+// 蝴蝶蘭輓詞的公司安排功能
+document.getElementById('checkboxWreathEulogy').addEventListener('change', (event) => {
+    const eulogyInput = document.getElementById('wreathEulogy');
+    if (event.target.checked) {
+        eulogyInput.value = '公司安排';
+        eulogyInput.readOnly = true;
+        eulogyInput.style.backgroundColor = '#e9ecef';
+    } else {
+        eulogyInput.value = '';
+        eulogyInput.readOnly = false;
+        eulogyInput.style.backgroundColor = '#fff';
+    }
+});
+        
         const checkboxes = document.querySelectorAll('input[type="checkbox"][name="productType"]');
         checkboxes.forEach(checkbox => {
             checkbox.addEventListener('change', (event) => {
@@ -839,6 +889,26 @@
                 errorMessages.push('請填寫落款或勾選「公司安排」。');
             }
 
+            // 檢查花籃輓詞欄位
+const flowerBasketCheckbox = document.getElementById('checkboxFlowerBasket');
+const flowerBasketEulogyInput = document.getElementById('flowerBasketEulogy');
+const flowerBasketEulogyCompany = document.getElementById('checkboxFlowerBasketEulogy');
+if (flowerBasketCheckbox.checked && !flowerBasketEulogyCompany.checked && !flowerBasketEulogyInput.value) {
+    flowerBasketEulogyInput.classList.add('error');
+    isValid = false;
+    errorMessages.push('請填寫花籃輓詞或勾選「公司安排」。');
+}
+
+// 檢查蝴蝶蘭輓詞欄位
+const wreathCheckbox = document.getElementById('checkboxWreath');
+const wreathEulogyInput = document.getElementById('wreathEulogy');
+const wreathEulogyCompany = document.getElementById('checkboxWreathEulogy');
+if (wreathCheckbox.checked && !wreathEulogyCompany.checked && !wreathEulogyInput.value) {
+    wreathEulogyInput.classList.add('error');
+    isValid = false;
+    errorMessages.push('請填寫蝴蝶蘭輓詞或勾選「公司安排」。');
+}
+            
             if (!hasSelectedProduct) {
                 errorMessages.push('請至少勾選一項商品類別。');
                 isValid = false;
@@ -940,6 +1010,7 @@
                             qty: qty,
                             price: price,
                             photoUrl: photoUrl
+                            eulogy: document.getElementById(`${type}Eulogy`).value || '' // 新增此行
                         };
                     }
                 }
@@ -999,5 +1070,6 @@
     </script>
 </body>
 </html>
+
 
 
