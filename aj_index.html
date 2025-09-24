@@ -735,12 +735,37 @@
                 if (radio.value === 'receipt') {
                     receiptDetails.style.display = 'block';
                     invoiceDetails.style.display = 'none';
+                    // 當選擇收據時，清空發票欄位
+                    document.getElementById('invoiceTitle').value = '';
+                    document.getElementById('invoiceTaxId').value = '';
+                    document.getElementById('invoiceCounty').value = '';
+                    document.getElementById('invoiceDistrict').value = '';
+                    document.getElementById('invoiceAddress').value = '';
+                    document.getElementById('invoicePhone').value = '';
                 } else if (radio.value === 'invoice') {
                     receiptDetails.style.display = 'none';
                     invoiceDetails.style.display = 'block';
-                } else { // 新增：處理 不需要
+                    // 當選擇發票時，清空收據欄位
+                    document.getElementById('receiptRecipient').value = '';
+                    document.getElementById('receiptPhone').value = '';
+                    document.getElementById('receiptCounty').value = '';
+                    document.getElementById('receiptDistrict').value = '';
+                    document.getElementById('receiptAddress').value = '';
+                } else { // 處理 '不需要' 選項
                     receiptDetails.style.display = 'none';
                     invoiceDetails.style.display = 'none';
+                    // 清空所有相關欄位
+                    document.getElementById('invoiceTitle').value = '';
+                    document.getElementById('invoiceTaxId').value = '';
+                    document.getElementById('invoiceCounty').value = '';
+                    document.getElementById('invoiceDistrict').value = '';
+                    document.getElementById('invoiceAddress').value = '';
+                    document.getElementById('invoicePhone').value = '';
+                    document.getElementById('receiptRecipient').value = '';
+                    document.getElementById('receiptPhone').value = '';
+                    document.getElementById('receiptCounty').value = '';
+                    document.getElementById('receiptDistrict').value = '';
+                    document.getElementById('receiptAddress').value = '';
                 }
                 calculateTotal();
             });
@@ -1052,3 +1077,4 @@
     </script>
 </body>
 </html>
+
