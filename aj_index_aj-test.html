@@ -448,7 +448,7 @@
 
                 <div id="wreathDetails" class="product-details">
                     <h3>蝴蝶蘭</h3>
-                    <img id="wreathImage" src="" alt="籃花照片" class="product-image" style="display: none;">
+                    <img id="wreathImage" src="" alt="蘭花照片" class="product-image" style="display: none;">
                     <div class="form-row">
                         <div>
                             <label for="wreathStyle">樣式</label>
@@ -703,7 +703,7 @@
 
             galleryElement.innerHTML = ''; // 清空載入中訊息
 
-            const categoriesToShow = ['花籃', '蘭花']; // 籃花即為蝴蝶蘭
+            const categoriesToShow = ['花籃', '蘭花']; // 蘭花即為蝴蝶蘭
 
             categoriesToShow.forEach(category => {
                 if (productData && productData[category]) {
@@ -823,7 +823,7 @@
         function populateProductSelects() {
             const products = {
                 'flowerBasket': '花籃',
-                'wreath': '籃花',
+                'wreath': '蘭花',
                 'fruitBasket': '水果籃'
             };
             for (const key in products) {
@@ -849,7 +849,7 @@
             const selectedStyle = styleSelect.value;
             let category;
             if (productType === 'flowerBasket') category = '花籃';
-            else if (productType === 'wreath') category = '籃花';
+            else if (productType === 'wreath') category = '蘭花';
             else if (productType === 'fruitBasket') category = '水果籃';
             if (selectedStyle && productData[category] && productData[category][selectedStyle]) {
                 const data = productData[category][selectedStyle];
@@ -1168,7 +1168,7 @@
                     const price = document.getElementById(`${type}Price`).value;
                     const eulogy = document.getElementById(`${type}Eulogy`).value;
                     if (style && qty > 0) {
-                        const categoryMap = { 'flowerBasket': '花籃', 'wreath': '籃花', 'fruitBasket': '水果籃' };
+                        const categoryMap = { 'flowerBasket': '花籃', 'wreath': '蘭花', 'fruitBasket': '水果籃' };
                         const category = categoryMap[type];
                         const photoUrl = productData[category]?.[style]?.photoUrl || '';
                         orderData.products[type] = {
@@ -1235,5 +1235,6 @@
     </script>
 </body>
 </html>
+
 
 
