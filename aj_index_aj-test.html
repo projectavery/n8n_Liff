@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-test</title>
+    <title>悼念花籃訂購單-test2</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -394,6 +394,14 @@
             </div>
 
             <hr>
+            <div class="section">
+                <h2>花籃樣式參考</h2>
+                <div id="product-gallery" class="gallery-container">
+                    <div style="text-align: center; grid-column: 1 / -1;">樣式資料載入中...</div>
+                </div>
+            </div>
+            
+            <hr>
 
             <div class="section">
                 <h2>商品類別 (請勾選)</h2>
@@ -652,6 +660,9 @@
                 productData = await productResponse.json();
                 populateProductSelects();
 
+                // *** 新增：載入完商品資料後，顯示圖片畫廊 ***
+                displayProductGallery();
+
                 const countyDistrictResponse = await fetch(`${WEB_APP_URL}?dataType=countyDistrict`);
                 countyDistrictData = await countyDistrictResponse.json();
                 populateCountySelects();
@@ -671,7 +682,7 @@
 
             galleryElement.innerHTML = ''; // 清空載入中訊息
 
-            const categoriesToShow = ['花籃', '蝴蝶蘭']; // 籃花即為蝴蝶蘭
+            const categoriesToShow = ['花籃', '蘭花']; // 籃花即為蝴蝶蘭
 
             categoriesToShow.forEach(category => {
                 if (productData && productData[category]) {
@@ -1203,6 +1214,7 @@
     </script>
 </body>
 </html>
+
 
 
 
