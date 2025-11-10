@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -307,6 +306,46 @@
                 /* 匹配輸入框的 margin-bottom */
                 width: auto;
             }
+        
+        /* 樣式新增：花籃樣式畫廊 */
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px dashed #ced4da;
+            border-radius: 8px;
+            background-color: #fefefe;
+        }
+
+        .gallery-item {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+            .gallery-item:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            .gallery-item img {
+                width: 100%;
+                height: auto;
+                border-radius: 6px;
+                margin-bottom: 10px;
+                cursor: pointer; /* 讓圖片可以被點擊或放大 */
+            }
+
+            .gallery-item p {
+                margin: 0;
+                font-weight: bold;
+                color: #007bff;
+                font-size: 1.1em;
+            }
     </style>
 </head>
 <body>
@@ -337,7 +376,6 @@
                 </div>
 
                 <div class="checkbox-group" style="display: none;">
-                    // 新增：隱藏選擇
                     <label>
                         <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement"> 公司安排 (落款若想由公司安排請選我)
                     </label>
@@ -357,6 +395,14 @@
             <hr>
 
             <div class="section">
+                <h2>花籃樣式參考</h2>
+                <div id="product-gallery" class="gallery-container">
+                    <div style="text-align: center; grid-column: 1 / -1;">樣式資料載入中...</div>
+                </div>
+            </div>
+            <hr>
+
+            <div class="section">
                 <h2>商品類別 (請勾選)</h2>
                 <div class="checkbox-group">
                     <label>
@@ -366,7 +412,6 @@
                         <input type="checkbox" id="checkboxWreath" name="productType" value="wreath"> 蝴蝶蘭
                     </label>
                     <label style="display: none;">
-                        // 新增：隱藏選擇
                         <input type="checkbox" id="checkboxFruitBasket" name="productType" value="fruitBasket"> 水果籃
                     </label>
                 </div>
@@ -540,7 +585,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqSMStYRtC8OFuN3W8jC9Y_3NYtsZWSUPaEkXfyA6qGNrRe0-CGMeTPnZqNO9wYDKj/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqSMStYRtC8OFuN3W8jC9Y_3NYtsZWSUPaEkXfyA6qGNrRe0-CGMeTPnZqNO9wYDKT/exec";
         const LINE_OA_ID = "@814bnwhk";
         const WEBHOOK_URL = "https://projectboy-n8n-free.hf.space/webhook/AJ_buy_online";
 
@@ -548,36 +593,36 @@
         let productData;
         let countyDistrictData;
         let lineProfile = {};
+        
         async function initializeLiff() {
             try {
-                if (!liff.isInClient()) {
-                    showCustomAlert('開啟方式錯誤 🚫', '此網頁需在 LINE 應用程式內開啟。');
-                    return;
-                }
+                // *** 移除 LIFF 環境檢查，允許在任何瀏覽器開啟 ***
+                // if (!liff.isInClient()) {
+                //     showCustomAlert('開啟方式錯誤 🚫', '此網頁需在 LINE 應用程式內開啟。');
+                //     return;
+                // }
+                
                 await liff.init({
                     liffId: "2008450540-moRoqJrD"
                 });
-                if (liff.isLoggedIn()) {
-                    const friendshipStatus = await liff.getFriendship();
-                    if (friendshipStatus.friendFlag) {
-                        document.getElementById('main-form-container').classList.add('active');
-                        await getLineProfile();
-                        loadFormData();
-                    } else {
-                        showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友。', () => {
-                            liff.openWindow({
-                                url: `https://line.me/R/ti/p/${LINE_OA_ID}`,
-                                external: true
-                            });
-                        });
-                    }
-                } else {
-                    liff.login();
-                }
+                
+                // *** 簡化啟動邏輯：直接顯示表單並嘗試取得用戶資訊 ***
+                document.getElementById('main-form-container').classList.add('active');
+                
+                await getLineProfile(); // 嘗試取得 LINE 資訊 (非 LIFF 環境會失敗，但 catch 會處理)
+                loadFormData();
+                
             } catch (err) {
                 console.error("LIFF initialization failed", err);
-                document.getElementById('line-displayName').textContent = '初始化失敗';
-                showCustomAlert('發生錯誤 ❌', 'LIFF 初始化失敗，請稍後再試。');
+                // 即使初始化失敗，我們仍然嘗試顯示表單
+                document.getElementById('main-form-container').classList.add('active');
+                document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
+                loadFormData();
+
+                // 只有在 LIFF 環境中發生錯誤才彈出提醒
+                if (liff.isInClient && liff.isInClient()) {
+                     showCustomAlert('發生錯誤 ❌', 'LIFF 初始化失敗，請稍後再試。');
+                }
             }
         }
 
@@ -607,6 +652,9 @@
                 const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
                 productData = await productResponse.json();
                 populateProductSelects();
+                
+                // *** 新增：載入完商品資料後，顯示圖片畫廊 ***
+                displayProductGallery();
 
                 const countyDistrictResponse = await fetch(`${WEB_APP_URL}?dataType=countyDistrict`);
                 countyDistrictData = await countyDistrictResponse.json();
@@ -619,6 +667,37 @@
                 setFormLoadingState(false);
             }
         }
+
+        // *** 新增函式：用於顯示花籃和蝴蝶蘭的樣式圖片 ***
+        function displayProductGallery() {
+            const galleryElement = document.getElementById('product-gallery');
+            galleryElement.innerHTML = ''; // 清空載入中訊息
+
+            const categoriesToShow = ['花籃', '籃花']; // 籃花即為蝴蝶蘭
+
+            categoriesToShow.forEach(category => {
+                if (productData && productData[category]) {
+                    const styles = productData[category];
+                    for (const styleName in styles) {
+                        const styleData = styles[styleName];
+                        if (styleData.photoUrl) {
+                            const item = document.createElement('div');
+                            item.className = 'gallery-item';
+                            item.innerHTML = `
+                                <img src="${styleData.photoUrl}" alt="${category} - ${styleName}" onclick="alert('樣式名稱: ${styleName}\\n價格: ${styleData.price}')">
+                                <p>${category}: ${styleName} ($${styleData.price})</p>
+                            `;
+                            galleryElement.appendChild(item);
+                        }
+                    }
+                }
+            });
+
+            if (galleryElement.innerHTML === '') {
+                 galleryElement.innerHTML = '<div style="text-align: center; grid-column: 1 / -1; color: #dc3545;">目前無花籃或蝴蝶蘭樣式資料。</div>';
+            }
+        }
+        // *** 結束新增函式 ***
 
         function setFormLoadingState(isLoading) {
             const selectElements = document.querySelectorAll('select');
@@ -1056,7 +1135,7 @@
                     const style = document.getElementById(`${type}Style`).value;
                     const qty = document.getElementById(`${type}Qty`).value;
                     const price = document.getElementById(`${type}Price`).value;
-                    const eulogy = document.getElementById(`${type}Eulogy`).value;
+                    const eulogy = document.getElementById(`${type}Eulogy`) ? document.getElementById(`${type}Eulogy').value : ''; // 新增：處理沒有輓詞欄位的商品
                     if (style && qty > 0) {
                         const categoryMap = { 'flowerBasket': '花籃', 'wreath': '籃花', 'fruitBasket': '水果籃' };
                         const category = categoryMap[type];
