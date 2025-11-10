@@ -596,32 +596,30 @@
         
         async function initializeLiff() {
             
-            // *** 修正點 1：將顯示表單的程式碼移到最前面，確保畫面立即顯示 ***
+            // 修正點 1：將顯示表單的程式碼移到最前面，確保畫面立即顯示
             document.getElementById('main-form-container').classList.add('active');
 
             try {
-                // 嘗試初始化 LIFF
+                
                 await liff.init({
                     liffId: "2008450540-moRoqJrD"
                 });
                 
-                // 嘗試取得 LINE 資訊，在非 LIFF 環境下會失敗，但 catch 會處理
+                // 嘗試取得 LINE 資訊
                 await getLineProfile(); 
 
-                // 修正點 2：保留好友檢查，但它只會彈出提醒，不會阻止表單顯示
+                // 修正點 2：調整好友檢查邏輯，只彈出提示，不再強制跳轉
                 if (liff.isLoggedIn()) {
                     const friendshipStatus = await liff.getFriendship();
                     if (!friendshipStatus.friendFlag) {
-                        showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友。', () => {
-                            liff.openWindow({
-                                url: `https://line.me/R/ti/p/${LINE_OA_ID}`,
-                                external: true
-                            });
-                        });
+                        // *** 僅提示，取消自動跳轉，避免 LIFF 環境出錯 ***
+                        showCustomAlert('請先加入好友 💖', '為確保服務品質，建議您先將我們官方帳號加入好友，但您仍可繼續填寫表單。');
+                        // 移除 liff.openWindow 的呼叫
                     }
                 } else {
-                    // 如果未登入，提示登入
-                    liff.login();
+                    // 如果未登入，提示登入，但為了測試方便，我們在 catch 區塊處理
+                    // 這裡可以選擇不動作，讓 catch 區塊的 loadFormData 載入表單
+                    // 或者可以強制 liff.login() 但這可能會導致外部瀏覽器開啟 LIFF 失敗
                 }
                 
             } catch (err) {
@@ -1217,3 +1215,4 @@
     </script>
 </body>
 </html>
+
