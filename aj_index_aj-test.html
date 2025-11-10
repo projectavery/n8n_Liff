@@ -585,7 +585,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqSMStYRtC8OFuN3W8jC9Y_3NYtsZWSUPaEkXfyA6qGNrRe0-CGMeTPnZqNO9wYDKT/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqSMStYRtC8OFuN3W8jC9Y_3NYtsZWSUPaEkXfyA6qGNrRe0-CGMeTPnZqNO9wYDKj/exec";
         const LINE_OA_ID = "@814bnwhk";
         const WEBHOOK_URL = "https://projectboy-n8n-free.hf.space/webhook/AJ_buy_online";
 
@@ -595,35 +595,48 @@
         let lineProfile = {};
         
         async function initializeLiff() {
+            
+            // *** 修正點 1：將顯示表單的程式碼移到最前面，確保畫面立即顯示 ***
+            document.getElementById('main-form-container').classList.add('active');
+
             try {
-                // *** 移除 LIFF 環境檢查，允許在任何瀏覽器開啟 ***
-                // if (!liff.isInClient()) {
-                //     showCustomAlert('開啟方式錯誤 🚫', '此網頁需在 LINE 應用程式內開啟。');
-                //     return;
-                // }
-                
+                // 嘗試初始化 LIFF
                 await liff.init({
                     liffId: "2008450540-moRoqJrD"
                 });
                 
-                // *** 簡化啟動邏輯：直接顯示表單並嘗試取得用戶資訊 ***
-                document.getElementById('main-form-container').classList.add('active');
-                
-                await getLineProfile(); // 嘗試取得 LINE 資訊 (非 LIFF 環境會失敗，但 catch 會處理)
-                loadFormData();
+                // 嘗試取得 LINE 資訊，在非 LIFF 環境下會失敗，但 catch 會處理
+                await getLineProfile(); 
+
+                // 修正點 2：保留好友檢查，但它只會彈出提醒，不會阻止表單顯示
+                if (liff.isLoggedIn()) {
+                    const friendshipStatus = await liff.getFriendship();
+                    if (!friendshipStatus.friendFlag) {
+                        showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友。', () => {
+                            liff.openWindow({
+                                url: `https://line.me/R/ti/p/${LINE_OA_ID}`,
+                                external: true
+                            });
+                        });
+                    }
+                } else {
+                    // 如果未登入，提示登入
+                    liff.login();
+                }
                 
             } catch (err) {
-                console.error("LIFF initialization failed", err);
-                // 即使初始化失敗，我們仍然嘗試顯示表單
-                document.getElementById('main-form-container').classList.add('active');
+                console.error("LIFF initialization or profile fetch failed:", err);
+                // 即使失敗，表單已顯示。只需要處理 LINE 資訊欄位的顯示
                 document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
-                loadFormData();
-
+                
                 // 只有在 LIFF 環境中發生錯誤才彈出提醒
                 if (liff.isInClient && liff.isInClient()) {
                      showCustomAlert('發生錯誤 ❌', 'LIFF 初始化失敗，請稍後再試。');
                 }
             }
+            
+            // 不論 LIFF 狀態如何，都應載入表單資料
+            loadFormData();
         }
 
         async function getLineProfile() {
@@ -1135,7 +1148,7 @@
                     const style = document.getElementById(`${type}Style`).value;
                     const qty = document.getElementById(`${type}Qty`).value;
                     const price = document.getElementById(`${type}Price`).value;
-                    const eulogy = document.getElementById(`${type}Eulogy`) ? document.getElementById(`${type}Eulogy').value : ''; // 新增：處理沒有輓詞欄位的商品
+                    const eulogy = document.getElementById(`${type}Eulogy`).value;
                     if (style && qty > 0) {
                         const categoryMap = { 'flowerBasket': '花籃', 'wreath': '籃花', 'fruitBasket': '水果籃' };
                         const category = categoryMap[type];
