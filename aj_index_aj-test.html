@@ -684,7 +684,7 @@
             const galleryElement = document.getElementById('product-gallery');
             galleryElement.innerHTML = ''; // 清空載入中訊息
 
-            const categoriesToShow = '花籃'; // 籃花即為蝴蝶蘭
+            const categoriesToShow = ['花籃','']; // 籃花即為蝴蝶蘭
 
             categoriesToShow.forEach(category => {
                 if (productData && productData[category]) {
@@ -1215,5 +1215,6 @@
     </script>
 </body>
 </html>
+
 
 
