@@ -21,8 +21,8 @@
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-            /* 預設隱藏，僅在LIFF內開啟時顯示 */
-            display: none;
+            /* 預設隱藏，只在檢查通過後才顯示 */
+            display: none; 
         }
 
             .container.active {
@@ -594,11 +594,10 @@
         let countyDistrictData;
         let lineProfile = {};
         
-        // *** 修正點：調整 LIFF 初始化邏輯，避免開啟錯誤的誤判 ***
+        // *** 修正點：調整 LIFF 初始化邏輯，恢復強制好友檢查邏輯 ***
         async function initializeLiff() {
             
-            // 修正點 1：先將表單顯示，避免因 LIFF 初始化延遲而畫面一片空白
-            document.getElementById('main-form-container').classList.add('active');
+            // 此處不再提前顯示表單容器，確保好友檢查通過後才能看到內容
 
             try {
                 
@@ -616,28 +615,43 @@
                 // 取得 LINE 資訊
                 await getLineProfile(); 
 
-                // 檢查好友狀態
+                // 檢查好友狀態 (恢復「強制」邏輯)
                 const friendshipStatus = await liff.getFriendship();
                 if (!friendshipStatus.friendFlag) {
-                    // 修正點 2：僅彈出提示，不再強制跳轉，允許用戶繼續填寫
-                    showCustomAlert('請先加入好友 💖', '為確保服務品質，建議您先將我們官方帳號加入好友，但您仍可繼續填寫表單。');
+                    // **恢復原始邏輯：不是好友，強制提示並導向加入好友頁面**
+                    showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友，才能開始填寫訂購單。', () => {
+                        liff.openWindow({
+                            url: `https://line.me/R/ti/p/${LINE_OA_ID}`,
+                            external: true
+                        });
+                        // 呼叫 liff.closeWindow() 確保用戶體驗是離開 LIFF
+                        if (liff.isInClient()) {
+                            liff.closeWindow(); 
+                        }
+                    });
+                    
+                    // 阻止載入表單資料和顯示表單
+                    return; 
                 }
                 
+                // 檢查通過：顯示表單並載入資料
+                document.getElementById('main-form-container').classList.add('active'); // <-- 檢查通過後才顯示表單
+                loadFormData();
+
             } catch (err) {
                 console.error("LIFF initialization or profile fetch failed:", err);
-                // 處理 LIFF 初始化失敗的情況
+                // 處理 LIFF 初始化失敗或取得資訊失敗的情況
                 document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
                 
-                // 如果在非 LINE 環境中發生初始化錯誤，給予明確提示
+                // 處理 LIFF 初始化失敗，此時不載入表單
                 if (!liff.isInClient()) {
                      showCustomAlert('開啟方式錯誤 🚫', '此網頁需在 LINE 應用程式內開啟，請確保您是從 LINE 聊天室或連結進入。');
                 } else {
                      showCustomAlert('發生錯誤 ❌', 'LIFF 初始化失敗，請稍後再試。');
                 }
+                
+                // 錯誤發生，不需要呼叫 loadFormData()
             }
-            
-            // 不論 LIFF 狀態如何，都應載入表單資料
-            loadFormData();
         }
 
         async function getLineProfile() {
@@ -657,6 +671,8 @@
             setFormLoadingState(true);
             initializeLiff();
         });
+        
+        // 確保 loadFormData 只有在 initializeLiff 成功時才呼叫
         async function loadFormData() {
             try {
                 const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
@@ -689,7 +705,7 @@
 
             galleryElement.innerHTML = ''; // 清空載入中訊息
 
-            const categoriesToShow = ['花籃', '籃花']; // 籃花即為蝴蝶蘭
+            const categoriesToShow = ['花籃', '蝴蝶蘭']; // 籃花即為蝴蝶蘭
 
             categoriesToShow.forEach(category => {
                 if (productData && productData[category]) {
