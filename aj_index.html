@@ -410,6 +410,11 @@
             <div class="section">
                 <label for="lastFiveDigits">轉帳後五碼</label>
                 <input type="text" id="lastFiveDigits" name="lastFiveDigits" maxlength="5" required placeholder="請輸入轉帳帳號後五碼">
+                <label for="lastFiveDigits">※收到款項後才會統一下單安排</label>
+                <label for="lastFiveDigits">銀行代碼: 822 (中國信託)</label>
+                <label for="lastFiveDigits">帳號: 901566331875</label>
+                <label for="lastFiveDigits">戶名: 古舜鑫 先生</label>
+                <label for="lastFiveDigits">⚠️轉帳完成請主動聯繫官方LINE，謝謝⚠️</label>
 
                 <div class="section">
                     <h2>收據/發票資訊 (請選擇)</h2>
@@ -1060,7 +1065,7 @@
                     body: JSON.stringify(orderData),
                 });
                 if (response.ok) {
-                    showCustomAlert('訂單送出成功 🎉', '稍後將有專人與您連繫，謝謝。', () => {
+                    showCustomAlert('訂單送出成功 🎉', '轉帳完成請主動與官方LINE連繫，謝謝。', () => {
                         liff.closeWindow();
                     });
                 } else {
@@ -1077,4 +1082,5 @@
     </script>
 </body>
 </html>
+
 
