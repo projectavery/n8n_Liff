@@ -593,48 +593,37 @@
         let productData;
         let countyDistrictData;
         let lineProfile = {};
-        
         async function initializeLiff() {
-            
-            // 修正點 1：將顯示表單的程式碼移到最前面，確保畫面立即顯示
-            document.getElementById('main-form-container').classList.add('active');
-
             try {
-                
+                if (!liff.isInClient()) {
+                    showCustomAlert('開啟方式錯誤 🚫', '此網頁需在 LINE 應用程式內開啟。');
+                    return;
+                }
                 await liff.init({
                     liffId: "2008450540-moRoqJrD"
                 });
-                
-                // 嘗試取得 LINE 資訊
-                await getLineProfile(); 
-
-                // 修正點 2：調整好友檢查邏輯，只彈出提示，不再強制跳轉
                 if (liff.isLoggedIn()) {
                     const friendshipStatus = await liff.getFriendship();
-                    if (!friendshipStatus.friendFlag) {
-                        // *** 僅提示，取消自動跳轉，避免 LIFF 環境出錯 ***
-                        showCustomAlert('請先加入好友 💖', '為確保服務品質，建議您先將我們官方帳號加入好友，但您仍可繼續填寫表單。');
-                        // 移除 liff.openWindow 的呼叫
+                    if (friendshipStatus.friendFlag) {
+                        document.getElementById('main-form-container').classList.add('active');
+                        await getLineProfile();
+                        loadFormData();
+                    } else {
+                        showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友。', () => {
+                            liff.openWindow({
+                                url: `https://line.me/R/ti/p/${LINE_OA_ID}`,
+                                external: true
+                            });
+                        });
                     }
                 } else {
-                    // 如果未登入，提示登入，但為了測試方便，我們在 catch 區塊處理
-                    // 這裡可以選擇不動作，讓 catch 區塊的 loadFormData 載入表單
-                    // 或者可以強制 liff.login() 但這可能會導致外部瀏覽器開啟 LIFF 失敗
+                    liff.login();
                 }
-                
             } catch (err) {
-                console.error("LIFF initialization or profile fetch failed:", err);
-                // 即使失敗，表單已顯示。只需要處理 LINE 資訊欄位的顯示
-                document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
-                
-                // 只有在 LIFF 環境中發生錯誤才彈出提醒
-                if (liff.isInClient && liff.isInClient()) {
-                     showCustomAlert('發生錯誤 ❌', 'LIFF 初始化失敗，請稍後再試。');
-                }
+                console.error("LIFF initialization failed", err);
+                document.getElementById('line-displayName').textContent = '初始化失敗';
+                showCustomAlert('發生錯誤 ❌', 'LIFF 初始化失敗，請稍後再試。');
             }
-            
-            // 不論 LIFF 狀態如何，都應載入表單資料
-            loadFormData();
         }
 
         async function getLineProfile() {
@@ -663,9 +652,9 @@
                 const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
                 productData = await productResponse.json();
                 populateProductSelects();
-                
-                // *** 新增：載入完商品資料後，顯示圖片畫廊 ***
-                displayProductGallery();
+
+                // *** 載入完商品資料後，顯示圖片畫廊 (新增) ***
+                displayProductGallery(); 
 
                 const countyDistrictResponse = await fetch(`${WEB_APP_URL}?dataType=countyDistrict`);
                 countyDistrictData = await countyDistrictResponse.json();
@@ -679,12 +668,14 @@
             }
         }
 
-        // *** 新增函式：用於顯示花籃和蝴蝶蘭的樣式圖片 ***
+        // *** 函式：用於顯示花籃和蝴蝶蘭的樣式圖片 (新增) ***
         function displayProductGallery() {
             const galleryElement = document.getElementById('product-gallery');
+            if (!galleryElement) return;
+
             galleryElement.innerHTML = ''; // 清空載入中訊息
 
-            const categoriesToShow = ['花籃','']; // 籃花即為蝴蝶蘭
+            const categoriesToShow = ['花籃', '蝴蝶蘭']; // 籃花即為蝴蝶蘭
 
             categoriesToShow.forEach(category => {
                 if (productData && productData[category]) {
@@ -692,11 +683,12 @@
                     for (const styleName in styles) {
                         const styleData = styles[styleName];
                         if (styleData.photoUrl) {
+                            const priceText = styleData.price ? `$${styleData.price}` : '價格未定';
                             const item = document.createElement('div');
                             item.className = 'gallery-item';
                             item.innerHTML = `
                                 <img src="${styleData.photoUrl}" alt="${category} - ${styleName}" onclick="alert('樣式名稱: ${styleName}\\n價格: ${styleData.price}')">
-                                <p>${category}: ${styleName} ($${styleData.price})</p>
+                                <p>${category}: ${styleName} (${priceText})</p>
                             `;
                             galleryElement.appendChild(item);
                         }
@@ -708,7 +700,7 @@
                  galleryElement.innerHTML = '<div style="text-align: center; grid-column: 1 / -1; color: #dc3545;">目前無花籃或蝴蝶蘭樣式資料。</div>';
             }
         }
-        // *** 結束新增函式 ***
+        // *** 結束函式 (新增) ***
 
         function setFormLoadingState(isLoading) {
             const selectElements = document.querySelectorAll('select');
@@ -1215,6 +1207,3 @@
     </script>
 </body>
 </html>
-
-
-
