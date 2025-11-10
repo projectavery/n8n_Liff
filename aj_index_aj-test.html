@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>悼念花籃訂購單-test2</title>
+    <title>悼念花籃訂購單-test</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
@@ -21,8 +21,8 @@
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-            /* 預設隱藏，僅在LIFF內開啟時顯示 */
-            display: none;
+            /* 預設隱藏，只在檢查通過後才顯示 */
+            display: none; 
         }
 
             .container.active {
@@ -306,7 +306,7 @@
                 /* 匹配輸入框的 margin-bottom */
                 width: auto;
             }
-
+        
         /* 樣式新增：花籃樣式畫廊 */
         .gallery-container {
             display: grid;
@@ -376,7 +376,6 @@
                 </div>
 
                 <div class="checkbox-group" style="display: none;">
-                    // 新增：隱藏選擇
                     <label>
                         <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement"> 公司安排 (落款若想由公司安排請選我)
                     </label>
@@ -394,13 +393,13 @@
             </div>
 
             <hr>
+
             <div class="section">
                 <h2>花籃樣式參考</h2>
                 <div id="product-gallery" class="gallery-container">
                     <div style="text-align: center; grid-column: 1 / -1;">樣式資料載入中...</div>
                 </div>
             </div>
-            
             <hr>
 
             <div class="section">
@@ -413,7 +412,6 @@
                         <input type="checkbox" id="checkboxWreath" name="productType" value="wreath"> 蝴蝶蘭
                     </label>
                     <label style="display: none;">
-                        // 新增：隱藏選擇
                         <input type="checkbox" id="checkboxFruitBasket" name="productType" value="fruitBasket"> 水果籃
                     </label>
                 </div>
@@ -505,11 +503,6 @@
             <div class="section">
                 <label for="lastFiveDigits">轉帳後五碼</label>
                 <input type="text" id="lastFiveDigits" name="lastFiveDigits" maxlength="5" required placeholder="請輸入轉帳帳號後五碼">
-                <label for="lastFiveDigits">※收到款項後才會統一下單安排</label>
-                <label for="lastFiveDigits">銀行代碼: 822 (中國信託)</label>
-                <label for="lastFiveDigits">帳號: 901566331875</label>
-                <label for="lastFiveDigits">戶名: 古舜鑫 先生</label>
-                <label for="lastFiveDigits">⚠️轉帳完成請主動聯繫官方LINE⚠️</label>
 
                 <div class="section">
                     <h2>收據/發票資訊 (請選擇)</h2>
@@ -600,36 +593,57 @@
         let productData;
         let countyDistrictData;
         let lineProfile = {};
+        
         async function initializeLiff() {
             try {
-                if (!liff.isInClient()) {
-                    showCustomAlert('開啟方式錯誤 🚫', '此網頁需在 LINE 應用程式內開啟。');
-                    return;
-                }
+                
+                // 嘗試初始化 LIFF
                 await liff.init({
                     liffId: "2008450540-moRoqJrD"
                 });
-                if (liff.isLoggedIn()) {
-                    const friendshipStatus = await liff.getFriendship();
-                    if (friendshipStatus.friendFlag) {
-                        document.getElementById('main-form-container').classList.add('active');
-                        await getLineProfile();
-                        loadFormData();
-                    } else {
-                        showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友。', () => {
-                            liff.openWindow({
-                                url: `https://line.me/R/ti/p/${LINE_OA_ID}`,
-                                external: true
-                            });
-                        });
-                    }
-                } else {
+                
+                // 檢查是否登入，未登入則導向登入
+                if (!liff.isLoggedIn()) {
                     liff.login();
+                    return; // 登入後頁面會重載
                 }
+                
+                // 取得 LINE 資訊
+                await getLineProfile(); 
+
+                // 檢查好友狀態 (強制好友邏輯)
+                const friendshipStatus = await liff.getFriendship();
+                if (!friendshipStatus.friendFlag) {
+                    // 不是好友，強制提示並導向加入好友頁面
+                    showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友，才能開始填寫訂購單。', () => {
+                        liff.openWindow({
+                            url: `https://line.me/R/ti/p/${LINE_OA_ID}`,
+                            external: true
+                        });
+                        // 呼叫 liff.closeWindow() 確保用戶體驗是離開 LIFF
+                        if (liff.isInClient()) {
+                            liff.closeWindow(); 
+                        }
+                    });
+                    
+                    // 阻止載入表單資料和顯示表單
+                    return; 
+                }
+                
+                // 檢查通過：顯示表單並載入資料
+                document.getElementById('main-form-container').classList.add('active'); // <-- 檢查通過後才顯示表單
+                loadFormData();
+
             } catch (err) {
-                console.error("LIFF initialization failed", err);
-                document.getElementById('line-displayName').textContent = '初始化失敗';
-                showCustomAlert('發生錯誤 ❌', 'LIFF 初始化失敗，請稍後再試。');
+                console.error("LIFF initialization or profile fetch failed:", err);
+                // 處理 LIFF 初始化失敗或取得資訊失敗的情況
+                document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
+                
+                // *** 修正點：移除在 catch 區塊內對 liff.isInClient() 的依賴 ***
+                // 避免在 LIFF 初始化失敗時，isInClient() 卻回傳 false (誤判為非 LINE 環境)
+                showCustomAlert('應用程式連線失敗 ❌', 'LIFF 初始化失敗。請檢查您的網路連線或確保您是透過 LINE 聊天室的連結進入。');
+                
+                // 錯誤發生，不需要呼叫 loadFormData()
             }
         }
 
@@ -650,6 +664,8 @@
             setFormLoadingState(true);
             initializeLiff();
         });
+        
+        // 確保 loadFormData 只有在 initializeLiff 成功時才呼叫
         async function loadFormData() {
             try {
                 const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
@@ -659,8 +675,8 @@
                 const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
                 productData = await productResponse.json();
                 populateProductSelects();
-
-                // *** 新增：載入完商品資料後，顯示圖片畫廊 ***
+                
+                // *** 載入完商品資料後，顯示圖片畫廊 ***
                 displayProductGallery();
 
                 const countyDistrictResponse = await fetch(`${WEB_APP_URL}?dataType=countyDistrict`);
@@ -682,7 +698,7 @@
 
             galleryElement.innerHTML = ''; // 清空載入中訊息
 
-            const categoriesToShow = ['花籃', '蘭花']; // 籃花即為蝴蝶蘭
+            const categoriesToShow = ['花籃', '籃花']; // 籃花即為蝴蝶蘭
 
             categoriesToShow.forEach(category => {
                 if (productData && productData[category]) {
@@ -704,7 +720,7 @@
             });
 
             if (galleryElement.innerHTML === '') {
-                galleryElement.innerHTML = '<div style="text-align: center; grid-column: 1 / -1; color: #dc3545;">目前無花籃或蝴蝶蘭樣式資料。</div>';
+                 galleryElement.innerHTML = '<div style="text-align: center; grid-column: 1 / -1; color: #dc3545;">目前無花籃或蝴蝶蘭樣式資料。</div>';
             }
         }
         // *** 結束函式 ***
@@ -1197,7 +1213,7 @@
                     body: JSON.stringify(orderData),
                 });
                 if (response.ok) {
-                    showCustomAlert('訂單送出成功 🎉', '轉帳完成請主動與官方LINE連繫，謝謝。', () => {
+                    showCustomAlert('訂單送出成功 🎉', '稍後將有專人與您連繫，謝謝。', () => {
                         liff.closeWindow();
                     });
                 } else {
@@ -1214,7 +1230,3 @@
     </script>
 </body>
 </html>
-
-
-
-
