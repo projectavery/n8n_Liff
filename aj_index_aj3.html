@@ -635,7 +635,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqSMStYRtC8OFuN3W8jC9Y_3NYtsZWSUPaEkXfyA6qGNrRe0-CGMeTPnZqNO9wYDKj/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqSMStYRtC8OFuN3W8jC9Y_3NYtsZWSUPaEkXfyA6qGNrRe0-CGMeTPnZz9D/exec";
         const LINE_OA_ID = "@814bnwhk";
         const WEBHOOK_URL = "https://projectboy-n8n-free.hf.space/webhook/AJ_buy_online";
 
@@ -668,7 +668,7 @@
                     if (friendshipStatus.friendFlag) {
                         // 1. 取得 LINE 資訊
                         await getLineProfile();
-                        // 2. 載入表單資料 (此步驟需要時間)
+                        // 2. 載入表單資料 (此步驟已優化為並行請求)
                         await loadFormData();
 
                         // 3. 所有資料載入完成，顯示主表單，隱藏載入指示器
@@ -715,22 +715,25 @@
             initializeLiff();
         });
 
+        // 核心優化：將串行請求改為並行請求
         async function loadFormData() {
             try {
-                // *** 確保每個網路請求都使用 await 等待完成 ***
-                const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
+                // *** 使用 Promise.all 同時發出三個網路請求 (並行執行) ***
+                const [venueResponse, productResponse, countyDistrictResponse] = await Promise.all([
+                    fetch(`${WEB_APP_URL}?dataType=venueAndHall`),
+                    fetch(`${WEB_APP_URL}?dataType=products`),
+                    fetch(`${WEB_APP_URL}?dataType=countyDistrict`)
+                ]);
+                
+                // 等待所有請求的回應後，再依序處理 JSON
                 venueAndHallData = await venueResponse.json();
-                populateVenueSelect();
-
-                const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
                 productData = await productResponse.json();
-                populateProductSelects();
-
-                // 載入完商品資料後，顯示圖片畫廊
-                displayProductGallery();
-
-                const countyDistrictResponse = await fetch(`${WEB_APP_URL}?dataType=countyDistrict`);
                 countyDistrictData = await countyDistrictResponse.json();
+
+                // 處理 UI 更新
+                populateVenueSelect();
+                populateProductSelects();
+                displayProductGallery();
                 populateCountySelects();
 
                 setFormLoadingState(false);
@@ -760,9 +763,9 @@
                             const item = document.createElement('div');
                             item.className = 'gallery-item';
                             item.innerHTML = `
-                                            <img src="${styleData.photoUrl}" alt="${category} - ${styleName}" onclick="alert('樣式名稱: ${styleName}\\n價格: ${styleData.price}')">
-                                            <p>${category}: ${styleName} (${priceText})</p>
-                                        `;
+                                                <img src="${styleData.photoUrl}" alt="${category} - ${styleName}" onclick="alert('樣式名稱: ${styleName}\\n價格: ${styleData.price}')">
+                                                <p>${category}: ${styleName} (${priceText})</p>
+                                            `;
                             galleryElement.appendChild(item);
                         }
                     }
