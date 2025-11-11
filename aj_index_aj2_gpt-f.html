@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>悼念花籃訂購單</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;background-color:#e9ecef;color:#333;}
+.container{max-width:650px;margin:auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.1);display:none;}
+.container.active{display:block;}
+.section{margin-bottom:30px;}
+.line-profile-section{padding:10px;border:1px solid #ccc;border-radius:8px;margin-bottom:30px;background-color:#f8f9fa;}
+.line-profile-details{display:flex;align-items:center;gap:15px;}
+.line-profile-details img{width:40px;height:40px;border-radius:50%;border:2px solid #007bff;object-fit:cover;}
+.line-profile-details span{font-weight:bold;color:#343a40;}
+h2{font-size:1.6em;border-bottom:3px solid #007bff;padding-bottom:10px;margin-bottom:25px;color:#333;}
+label{display:block;margin-bottom:8px;font-weight:600;color:#495057;}
+input,select{width:100%;padding:12px;margin-bottom:20px;border:1px solid #ced4da;border-radius:8px;box-sizing:border-box;font-size:1.1em;}
+input:focus,select:focus{outline:none;border-color:#007bff;box-shadow:0 0 0 3px rgba(0,123,255,0.25);}
+.checkbox-group,.radio-group{display:flex;flex-wrap:wrap;gap:25px;margin-bottom:20px;}
+.product-details{display:none;border-left:4px solid #28a745;padding-left:20px;background-color:#f1fef1;border-radius:8px;}
+.product-details.active{display:block;}
+.price-box{background-color:#e9ecef;font-weight:bold;}
+.total-amount input{background-color:#e9ecef;font-weight:bold;color:#495057;text-align:right;font-size:1.2em;border:2px dashed #007bff;}
+.submit-button{width:100%;padding:15px;background-color:#28a745;color:white;border:none;border-radius:8px;font-size:1.2em;cursor:pointer;}
+.submit-button:hover{background-color:#218838;}
+.modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.5);justify-content:center;align-items:center;}
+.modal-content{background-color:#fff;padding:30px;border-radius:12px;width:90%;max-width:450px;text-align:center;box-shadow:0 8px 25px rgba(0,0,0,0.2);}
+.gallery-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;padding:10px;border:1px dashed #ced4da;border-radius:8px;background-color:#fefefe;}
+.gallery-item{text-align:center;border:1px solid #e9ecef;border-radius:8px;padding:10px;}
+.gallery-item img{width:100%;border-radius:6px;cursor:pointer;margin-bottom:10px;}
+/* Loading Spinner */
+#loadingOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.spinner{border:6px solid #f3f3f3;border-top:6px solid #007bff;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite;}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div id="loadingOverlay"><div class="spinner"></div><p>載入中，請稍候...</p></div>
+<div class="container" id="main-form-container">
+<div class="line-profile-section">
+<h2>訂購人 LINE 資訊</h2>
+<div class="line-profile-details">
+<img id="line-avatar" src="https://via.placeholder.com/40">
+<div><p>顯示名稱：<span id="line-displayName">載入中...</span></p></div>
+</div></div>
+<input type="hidden" id="uid" name="uid">
+<form id="aj_index">
+<div class="section">
+<h2>告別式資訊</h2>
+<label for="funeralDate">告別式日期</label>
+<input type="date" id="funeralDate" name="funeralDate" required>
+<label for="deceasedName">案名</label>
+<input type="text" id="deceasedName" name="deceasedName" required placeholder="請輸入亡者姓名">
+<label for="dedication">落款</label>
+<input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
+<label for="funeralVenue">告別式場館</label>
+<select id="funeralVenue" name="funeralVenue" required onchange="updateHallSelect()">
+<option value="" disabled selected>請選擇場館</option></select>
+<label for="hallName">廳別</label>
+<select id="hallName" name="hallName" required><option value="" disabled selected>請選擇廳別</option></select>
+</div>
+<hr>
+<div class="section">
+<h2>花籃樣式參考</h2>
+<div id="product-gallery" class="gallery-container"><div style="text-align:center;grid-column:1/-1;">樣式資料載入中...</div></div>
+</div>
+<hr>
+<div class="section">
+<h2>商品類別</h2>
+<div class="checkbox-group">
+<label><input type="checkbox" id="checkboxFlowerBasket" name="productType" value="flowerBasket">花籃</label>
+<label><input type="checkbox" id="checkboxWreath" name="productType" value="wreath">蝴蝶蘭</label>
+</div>
+<div id="flowerBasketDetails" class="product-details">
+<h3>花籃</h3>
+<select id="flowerBasketStyle" onchange="updatePrice('flowerBasket')"><option value="" disabled selected>請選擇樣式</option></select>
+<input type="text" id="flowerBasketEulogy" placeholder="輓詞">
+<input type="text" id="flowerBasketPrice" class="price-box" readonly value="0">
+<input type="number" id="flowerBasketQty" min="0" value="0" oninput="calculateTotal()">
+</div>
+<div id="wreathDetails" class="product-details">
+<h3>蝴蝶蘭</h3>
+<select id="wreathStyle" onchange="updatePrice('wreath')"><option value="" disabled selected>請選擇樣式</option></select>
+<input type="text" id="wreathEulogy" placeholder="輓詞">
+<input type="text" id="wreathPrice" class="price-box" readonly value="0">
+<input type="number" id="wreathQty" min="0" value="0" oninput="calculateTotal()">
+</div>
+</div>
+<hr>
+<div class="section">
+<h2>收據/發票資訊</h2>
+<div class="radio-group">
+<label><input type="radio" name="receiptType" value="receipt">收據</label>
+<label><input type="radio" name="receiptType" value="invoice">發票</label>
+<label><input type="radio" name="receiptType" value="noNeed">不需要</label>
+</div>
+</div>
+<div class="total-amount"><label for="totalAmount">合計金額</label><input type="text" id="totalAmount" readonly value="0"></div>
+<button type="submit" class="submit-button">送出訂單</button>
+</form></div>
+<div id="customAlert" class="modal">
+<div class="modal-content">
+<span class="close-btn">&times;</span>
+<h2 id="modalTitle"></h2>
+<p id="modalMessage"></p>
+<button id="modalOkBtn" class="submit-button">確定</button>
+</div></div>
+<script>
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbwqSMStYRtC8OFuN3W8jC9Y_3NYtsZWSUPaEkXfyA6qGNrRe0-CGMeTPnZqNO9wYDKj/exec";
+const LINE_OA_ID="@814bnwhk";
+let retryCount=0;
+window.onload=()=>initApp();
+async function initApp(){showLoading(true);try{await liff.init({liffId:"2008450540-rb9MReVE"});
+if(!liff.isInClient()){alert("請於 LINE 內開啟此頁。");return;}
+if(!liff.isLoggedIn())return liff.login();document.getElementById("main-form-container").classList.add("active");await Promise.all([loadData(),getLineProfile()]);
+}catch(e){console.error("初始化失敗",e);if(retryCount<3){retryCount++;console.log(`重試中(${retryCount})...`);setTimeout(initApp,2000);}else{alert("初始化失敗，請重新整理。");}}finally{showLoading(false);}}
+async function loadData(){const[venueRes,productRes,countyRes]=await Promise.all([fetch(`${WEB_APP_URL}?dataType=venueAndHall`),fetch(`${WEB_APP_URL}?dataType=products`),fetch(`${WEB_APP_URL}?dataType=countyDistrict`)]);const venueAndHallData=await venueRes.json();const productData=await productRes.json();const countyDistrictData=await countyRes.json();populateVenueSelect(venueAndHallData);populateProductSelects(productData);displayProductGallery(productData);}
+async function getLineProfile(){try{const p=await liff.getProfile();document.getElementById("line-avatar").src=p.pictureUrl;document.getElementById("line-displayName").textContent=p.displayName;}catch(e){console.log("無法取得LINE資訊",e);}}
+function populateVenueSelect(data){const sel=document.getElementById("funeralVenue");sel.innerHTML='<option value="" disabled selected>請選擇場館</option>';Object.keys(data||{}).forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;sel.appendChild(o);});}
+function populateProductSelects(data){["flowerBasket","wreath"].forEach(t=>{const map={flowerBasket:"花籃",wreath:"蘭花"};const s=document.getElementById(`${t}Style`);s.innerHTML='<option value="" disabled selected>請選擇樣式</option>';Object.keys(data[map[t]]||{}).forEach(st=>{const o=document.createElement("option");o.value=st;o.textContent=st;s.appendChild(o);});});}
+function updatePrice(t){const map={flowerBasket:"花籃",wreath:"蘭花"};const sel=document.getElementById(`${t}Style`);const pr=document.getElementById(`${t}Price`);const v=sel.value;if(window.productData&&productData[map[t]]&&productData[map[t]][v])pr.value=productData[map[t]][v].price||0;else pr.value=0;calculateTotal();}
+function calculateTotal(){let total=0;["flowerBasket","wreath"].forEach(t=>{const q=parseInt(document.getElementById(`${t}Qty`).value)||0;const p=parseFloat(document.getElementById(`${t}Price`).value)||0;total+=q*p;});document.getElementById("totalAmount").value=total;}
+function displayProductGallery(data){const g=document.getElementById("product-gallery");if(!g)return;g.innerHTML="";const cats=["花籃","蘭花"];cats.forEach(c=>{if(data[c]){Object.entries(data[c]).forEach(([n,info])=>{if(info.photoUrl){const d=document.createElement("div");d.className="gallery-item";d.innerHTML=`<img src="${info.photoUrl}" alt="${c}-${n}"><p>${c}:${n} ($${info.price||"未定"})</p>`;g.appendChild(d);}});}});if(!g.innerHTML)g.innerHTML='<div style="text-align:center;">目前無資料</div>';}
+function showLoading(s){document.getElementById("loadingOverlay").style.display=s?"flex":"none";}
+</script>
+</body>
+</html>
