@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>動態飲品訂購單</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 20px;
+        }
+
+        select, input, textarea {
+            width: 300px;
+            padding: 5px;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        #formContainer {
+            display: none;
+        }
+
+        #friendCheck {
+            display: none;
+            border: 1px solid #ccc;
+            padding: 20px;
+            width: 320px;
+            background-color: #fff3cd;
+            color: #856404;
+            text-align: center;
+        }
+
+        #addFriendBtn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #1db446;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        #submitBtn {
+            font-size: 18px;
+            padding: 12px 24px;
+            width: 320px;
+            border: none;
+            border-radius: 6px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+            #submitBtn:hover {
+                background-color: #218838;
+            }
+    </style>
+</head>
+<body>
+    <div id="friendCheck">
+        <p>請先加入我們的 LINE 好友以填寫表單 😊</p>
+        <a id="addFriendBtn" href="https://line.me/R/ti/p/@lln8038m" target="_blank">➕ 加入好友</a>
+    </div>
+
+    <div id="formContainer">
+        <h2></h2>
+
+        <div id="userProfile" style="border:1px solid #ccc; background:#f8f9fa; padding:10px; width:320px;">
+            <strong>訂購人LINE資訊</strong>
+            <p>頭像：<img id="userImage" src="" alt="User" style="width:40px;height:40px;border-radius:50%;"></p>
+            <p>顯示名稱：<span id="userName"></span></p>
+        </div>
+
+        <input type="hidden" id="uid" name="uid">
+
+        <label for="brand">今日品牌：</label>
+        <input type="text" id="brand" readonly placeholder="載入中...">
+
+        <label for="item">飲品分類：</label>
+        <select id="item" disabled required>
+            <option value="" disabled selected>-- 請選擇飲品分類 --</option>
+        </select>
+
+        <label for="flavor">飲品名稱：</label>
+        <select id="flavor" disabled required>
+            <option value="" disabled selected>請先選擇飲品分類</option>
+        </select>
+
+        <label for="sweetness">甜度：</label>
+        <select id="sweetness" required>
+            <option value="" selected disabled>-- 請選擇甜度 --</option>
+            <option value="正常(10分)">正常(10分)</option>
+            <option value="少糖(8分)">少糖(8分)</option>
+            <option value="半糖(5分)">半糖(5分)</option>
+            <option value="微糖(3分)">微糖(3分)</option>
+            <option value="無糖">無糖</option>
+        </select>
+
+        <label for="ice">冰塊：</label>
+        <select id="ice" required>
+            <option value="" disabled selected>-- 請選擇冰塊 --</option>
+            <option value="正常(10分)">正常(10分)</option>
+            <option value="少冰(8分)">少冰(8分)</option>
+            <option value="微冰(3分)">微冰(3分)</option>
+            <option value="去冰(薄冰)">去冰(薄冰)</option>
+            <option value="常溫">常溫</option>
+            <option value="溫">溫</option>
+            <option value="熱">熱</option>
+        </select>
+
+        <label for="quantity">數量：</label>
+        <input type="number" id="quantity" min="1" placeholder="請輸入數量" required>
+
+        <label for="ext">分機：</label>
+        <input type="text" id="ext" placeholder="例:#123" required>
+
+        <label for="note">備註：</label>
+        <textarea id="note" placeholder="例:加珍珠、布丁"></textarea>
+
+        <br><br>
+        <button id="submitBtn" onclick="submitForm()">送出表單</button>
+    </div>
+
+    <script>
+        const brandInput = document.getElementById('brand');
+        const itemSelect = document.getElementById('item');
+        const flavorSelect = document.getElementById('flavor');
+        let allData = [];
+
+        async function init() {
+            await liff.init({ liffId: "2008640627-gn7doRpa" });
+
+            if (!liff.isInClient() && !liff.isLoggedIn()) {
+                document.body.innerHTML = "<h3 style='text-align:center;'>⚠️請使用 LINE APP 開啟此表單以正常填寫訂單 🙏</h3>";
+                return;
+            }
+
+            if (!liff.isLoggedIn()) {
+                liff.login();
+                return;
+            }
+            const isFriend = await liff.getFriendship();
+            const profile = await liff.getProfile();
+            const uid = profile.userId;
+            const name = profile.displayName;
+            const picture = profile.pictureUrl;
+
+            document.getElementById("uid").value = uid;
+            document.getElementById("userName").textContent = name;
+            document.getElementById("userImage").src = picture;
+
+            if (isFriend.friendFlag) {
+                document.getElementById("formContainer").style.display = "block";
+                document.getElementById("friendCheck").style.display = "none";
+                loadBrandData();
+            } else {
+                document.getElementById("formContainer").style.display = "none";
+                document.getElementById("friendCheck").style.display = "block";
+            }
+        }
+
+        async function loadBrandData() {
+            const apiUrl = "https://script.google.com/macros/s/AKfycbyH5_ZyKSBq1s49KRwSRlkjzWQsheTaLdFXAvU1vju4pAuY3kmdGYZ1GNukkJ3qGQ/exec";
+            try {
+                const res = await fetch(apiUrl);
+                const data = await res.json();
+                const brands = data.brands;
+                allData = data.items;
+                if (brands.length === 0) {
+                    brandInput.value = '⚠️ 無可用品牌';
+                    return;
+                }
+                brandInput.value = brands[0];
+                loadItemsForBrand(brands[0]);
+            } catch (err) {
+                brandInput.value = '⚠️ 載入失敗';
+            }
+        }
+
+        function loadItemsForBrand(brand) {
+            const items = [...new Set(allData.filter(row => row[0] === brand).map(row => row[1]))];
+            itemSelect.innerHTML = '<option value="" disabled selected>-- 請選擇飲品分類 --</option>';
+            flavorSelect.innerHTML = '<option value="" disabled selected>請先選擇飲品分類</option>';
+            flavorSelect.disabled = true;
+            items.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item;
+                opt.textContent = item;
+                itemSelect.appendChild(opt);
+            });
+            itemSelect.disabled = false;
+        }
+
+        itemSelect.addEventListener('change', () => {
+            const selectedBrand = brandInput.value;
+            const selectedItem = itemSelect.value;
+            const flavors = [...new Set(allData
+                .filter(row => row[0] === selectedBrand && row[1] === selectedItem)
+                .map(row => row[2]))];
+
+            flavorSelect.innerHTML = '<option value="" disabled selected>-- 請選擇飲品 --</option>';
+            flavors.forEach(flavor => {
+                const opt = document.createElement('option');
+                opt.value = flavor;
+                opt.textContent = flavor;
+                flavorSelect.appendChild(opt);
+            });
+            flavorSelect.disabled = false;
+        });
+
+        function submitForm() {
+            const uid = document.getElementById("uid").value;
+            const name = document.getElementById("userName").textContent;
+            const brand = brandInput.value;
+            const item = itemSelect.value;
+            const flavor = flavorSelect.value;
+            const sweetness = document.getElementById("sweetness").value;
+            const ice = document.getElementById("ice").value;
+            const quantity = document.getElementById("quantity").value;
+            const ext = document.getElementById("ext").value;
+            let note = document.getElementById("note").value;
+            if (!item || !flavor || !sweetness || !ice || !quantity || !ext) {
+                alert("⚠️ 除備註外，所有欄位都必須填寫！");
+                return;
+            }
+            const now = new Date();
+            const deadlineHour = 11;
+            const deadlineMinute = 00;
+            if (now.getHours() > deadlineHour || (now.getHours() === deadlineHour && now.getMinutes() >= deadlineMinute)) {
+                alert("⚠️ 訂單時間已超過上午 11:00，無法送出！");
+                return;
+            }
+            if (!note.trim()) note = "無";
+            const data = { name, uid, brand, item, flavor, sweetness, ice, quantity, ext, note };
+            fetch("https://projectboy-n8n-free.hf.space/webhook/dynamic_form", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+                .then(res => {
+                    if (res.ok) {
+                        alert("✅ 表單已成功送出！");
+                        document.getElementById("item").value = "";
+                        document.getElementById("flavor").innerHTML = '<option value="" disabled selected>請先選擇飲品分類</option>';
+                        document.getElementById("flavor").disabled = true;
+                        document.getElementById("sweetness").value = "";
+                        document.getElementById("ice").value = "";
+                        document.getElementById("quantity").value = "";
+                        document.getElementById("ext").value = "";
+                        document.getElementById("note").value = "";
+
+                        liff.closeWindow();
+
+                    } else {
+                        alert("❌ 發送失敗，請稍後再試。");
+                    }
+                })
+                .catch(err => alert("❌ 發送錯誤：" + err));
+        }
+
+        init();
+    </script>
+</body>
+</html>
+
+
+
+
