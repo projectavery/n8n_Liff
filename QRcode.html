@@ -3,117 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR 掃描與資料查詢</title>
+    <title>抽獎掃描與核銷系統</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #f0f2f5; }
-        #reader { width: 100%; max-width: 400px; border-radius: 12px; overflow: hidden; }
-        .container { width: 100%; max-width: 400px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 20px; }
-        textarea { width: 100%; height: 80px; margin-bottom: 10px; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin-bottom: 10px; color: white; }
-        .btn-query { background-color: #28a745; }
-        .btn-restart { background-color: #007bff; }
-        #apiResponse { margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 4px; font-size: 14px; white-space: pre-wrap; min-height: 50px; }
-        .loading { color: #666; font-style: italic; }
+        body {
+            font-family: -apple-system, "Microsoft JhengHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 60px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-scan { background-color: #34495e; color: white; }
+        .btn-query { background-color: #e74c3c; color: white; }
+        .btn-update { background-color: #27ae60; color: white; display: none; }
+        #displayArea {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
 
-    <h2>掃碼查詢系統</h2>
-
+    <h2>抽獎掃描系統</h2>
+    
     <div id="reader"></div>
 
     <div class="container">
-        <label>掃描結果：</label>
-        <textarea id="scannedResult" placeholder="掃碼內容將顯示於此..."></textarea>
+        <textarea id="scannedResult" placeholder="掃描編號或手動輸入..."></textarea>
         
-        <button class="btn btn-query" onclick="sendData()">查詢 (送出資料)</button>
-        <button class="btn btn-restart" onclick="restartScanner()">重啟相機</button>
-
-        <label>API 回傳結果：</label>
-        <div id="apiResponse">等待查詢...</div>
+        <div class="btn-group">
+            <button class="btn-scan" onclick="startScanner()">重新掃描</button>
+            <button class="btn-query" onclick="handleAction('query')">查詢</button>
+        </div>
+        <button id="updateConfirmBtn" class="btn-update" style="margin-top: 10px; width: 100%;" onclick="handleAction('updata')">確認領獎 (更新資料)</button>
+        
+        <div id="status"></div>
     </div>
 
-    <script>
-        let html5QrCode;
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    <div id="displayArea"></div>
 
-        // 初始化相機（僅限後置鏡頭）
+    <script>
+        const WEBHOOK_URL = 'https://projectboy-n8n-free.hf.space/webhook/bingo';
+        let html5QrCode;
+
+        // 初始化掃描器
         function startScanner() {
-            html5QrCode = new Html5Qrcode("reader");
-            // facingMode: "environment" 強制使用後置相機
+            // 清空之前的顯示
+            document.getElementById('displayArea').innerHTML = "";
+            document.getElementById('status').innerText = "相機啟動中...";
+            document.getElementById('updateConfirmBtn').style.display = 'none';
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+            // 1. 相機只用後置相機 (facingMode: environment)
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
             html5QrCode.start(
                 { facingMode: "environment" }, 
                 config,
-                onScanSuccess
+                (decodedText) => {
+                    // 掃描成功後的動作
+                    document.getElementById('scannedResult').value = decodedText;
+                    
+                    // 2. 掃描到資料後自動關閉相機
+                    html5QrCode.stop().then(() => {
+                        document.getElementById('status').innerText = "掃描成功，自動查詢中...";
+                        // 3. 自動開始查詢
+                        handleAction('query');
+                    });
+
+                    if (navigator.vibrate) navigator.vibrate(100);
+                }
             ).catch(err => {
-                console.error("無法開啟相機: ", err);
-                alert("請確保在 HTTPS 環境下並允許相機權限");
+                document.getElementById('status').innerText = "無法開啟相機，請檢查權限或 HTTPS。";
             });
         }
 
-        // 掃描成功回呼
-        function onScanSuccess(decodedText) {
-            document.getElementById('scannedResult').value = decodedText;
-            
-            // 1. 自動關閉相機
-            stopScanner();
-            
-            // 震動回饋
-            if (navigator.vibrate) navigator.vibrate(100);
-            
-            console.log("掃描成功並已關閉相機");
-        }
+        // 處理 n8n 請求 (包含 query 與 updata)
+        async function handleAction(actionType) {
+            const idValue = document.getElementById('scannedResult').value;
+            const displayArea = document.getElementById('displayArea');
+            const status = document.getElementById('status');
+            const updateBtn = document.getElementById('updateConfirmBtn');
 
-        // 停止相機
-        function stopScanner() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().then(() => {
-                    document.getElementById('reader').innerHTML = "<p style='text-align:center; padding:20px; color:red;'>相機已關閉，請按重啟按鈕再次掃描</p>";
-                }).catch(err => console.error("停止失敗", err));
-            }
-        }
-
-        // 重啟相機
-        function restartScanner() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                stopScanner();
-            }
-            document.getElementById('reader').innerHTML = "";
-            startScanner();
-        }
-
-        // 送出資料到 n8n Webhook
-        async function sendData() {
-            const data = document.getElementById('scannedResult').value;
-            const responseDiv = document.getElementById('apiResponse');
-
-            if (!data) {
-                alert("請先掃描內容");
+            if (!idValue) {
+                alert("請先輸入或掃描編號");
                 return;
             }
 
-            responseDiv.innerHTML = '<span class="loading">查詢中...</span>';
+            status.innerText = actionType === 'query' ? "查詢資料中..." : "核銷更新中...";
 
             try {
-                const response = await fetch('https://projectboy-n8n-free.hf.space/webhook/bingo', {
+                const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: data, timestamp: new Date().toISOString() })
+                    // 增加回傳參數 action
+                    body: JSON.stringify({ 
+                        action: actionType, 
+                        id: idValue 
+                    })
                 });
 
-                if (response.ok) {
-                    const result = await response.text(); // 根據你 API 回傳格式改為 .json() 或 .text()
-                    responseDiv.innerText = result;
+                const content = await response.text();
+
+                if (actionType === 'query') {
+                    // 顯示 n8n 回傳的 HTML 卡片
+                    displayArea.innerHTML = content;
+                    status.innerText = "查詢完成";
+                    // 查詢成功後，顯示「確認領獎」按鈕
+                    updateBtn.style.display = 'block';
                 } else {
-                    responseDiv.innerText = "查詢失敗: " + response.status;
+                    // 更新成功後的動作
+                    alert("✅ 領獎狀態已成功更新！");
+                    status.innerText = "資料已更新";
+                    updateBtn.style.display = 'none';
+                    displayArea.innerHTML = ""; 
                 }
             } catch (error) {
-                responseDiv.innerText = "連線錯誤: " + error.message;
+                status.innerText = "連線失敗：" + error.message;
             }
         }
 
-        // 頁面載入後自動啟動
+        // 頁面載入後自動開啟相機
         window.onload = startScanner;
     </script>
 </body>
