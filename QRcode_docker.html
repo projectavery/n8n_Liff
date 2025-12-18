@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽獎掃描與核銷系統2</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: -apple-system, "Microsoft JhengHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 60px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-scan { background-color: #34495e; color: white; }
+        .btn-query { background-color: #e74c3c; color: white; }
+        
+        /* 確認領獎按鈕樣式 */
+        .btn-update { 
+            margin-top: 10px; 
+            width: 100%; 
+            display: none; 
+            background-color: #27ae60; 
+            color: white; 
+        }
+        /* 未中獎時按鈕變灰色且不可點擊 */
+        .btn-update:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            color: #ecf0f1;
+        }
+
+        #displayArea {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>抽獎掃描系統</h2>
+    
+    <div id="reader"></div>
+
+    <div class="container">
+        <textarea id="scannedResult" placeholder="掃描編號或手動輸入..."></textarea>
+        
+        <div class="btn-group">
+            <button class="btn-scan" onclick="startScanner()">重新掃描</button>
+            <button class="btn-query" onclick="handleAction('code')">手動查詢</button>
+        </div>
+        
+        <button id="updateConfirmBtn" class="btn-update" onclick="handleAction('updata')">確認領獎 (更新資料)</button>
+        
+        <div id="status"></div>
+    </div>
+
+    <div id="displayArea"></div>
+
+    <script>
+        const WEBHOOK_URL = 'https://buck-decent-bobcat.ngrok-free.app/webhook/bingo';
+        let html5QrCode;
+
+        function startScanner() {
+            // 需求 1: 開啟相機時清除文字窗內容
+            document.getElementById('scannedResult').value = "";
+            
+            document.getElementById('displayArea').innerHTML = "";
+            document.getElementById('status').innerText = "相機啟動中...";
+            document.getElementById('updateConfirmBtn').style.display = 'none';
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config,
+                (decodedText) => {
+                    document.getElementById('scannedResult').value = decodedText;
+                    
+                    html5QrCode.stop().then(() => {
+                        document.getElementById('status').innerText = "掃描成功，自動查詢中...";
+                        // 需求 2: 掃描後自動查詢，action 固定為 'code'
+                        handleAction('code');
+                    });
+
+                    if (navigator.vibrate) navigator.vibrate(100);
+                }
+            ).catch(err => {
+                document.getElementById('status').innerText = "無法開啟相機，請檢查權限或 HTTPS。";
+            });
+        }
+
+        async function handleAction(actionType) {
+    const idValue = document.getElementById('scannedResult').value;
+    const displayArea = document.getElementById('displayArea');
+    const status = document.getElementById('status');
+    const updateBtn = document.getElementById('updateConfirmBtn');
+
+    if (!idValue) {
+        alert("請先輸入或掃描編號");
+        return;
+    }
+
+    status.innerText = actionType === 'code' ? "查詢資料中..." : "核銷更新中...";
+
+    try {
+        const response = await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: actionType, 
+                id: idValue 
+            })
+        });
+
+        const content = await response.text();
+
+        if (actionType === 'code') {
+            displayArea.innerHTML = content;
+            status.innerText = "查詢完成";
+            updateBtn.style.display = 'block';
+
+            // --- 新增的判斷邏輯 ---
+            
+            // 1. 先看是否中獎 (包含 "恭喜中獎" 字樣)
+            if (content.includes("恭喜中獎")) {
+                // 2. 再看隱藏標籤，檢查是否為「已領獎」
+                if (content.includes("ALREADY_CLAIMED")) {
+                    updateBtn.disabled = true;
+                    updateBtn.innerText = "已領獎 (不可重複領取)";
+                } else {
+                    updateBtn.disabled = false;
+                    updateBtn.innerText = "確認領獎 (更新資料)";
+                }
+            } else if (content.includes("此獎項已領取")) {
+                // 如果已經領過了，直接鎖定按鈕
+                updateBtn.disabled = true;
+                updateBtn.innerText = "已領獎";
+            } else {
+                // 未中獎的情況
+                updateBtn.disabled = true;
+                updateBtn.innerText = "未中獎 (無法領獎)";
+            }
+            // -----------------------
+
+        } else if (actionType === 'updata') {
+            alert("✅ 領獎狀態已成功更新！");
+            status.innerText = "資料已更新";
+            updateBtn.style.display = 'none';
+            displayArea.innerHTML = ""; 
+        }
+    } catch (error) {
+        status.innerText = "連線失敗：" + error.message;
+    }
+}
+
+        window.onload = startScanner;
+    </script>
+</body>
+</html>
+
+
