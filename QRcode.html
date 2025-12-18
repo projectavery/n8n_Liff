@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>抽獎掃描與核銷系統</title>
+    <title>抽獎掃描與核銷系統2</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
@@ -53,7 +53,22 @@
         }
         .btn-scan { background-color: #34495e; color: white; }
         .btn-query { background-color: #e74c3c; color: white; }
-        .btn-update { background-color: #27ae60; color: white; display: none; }
+        
+        /* 確認領獎按鈕樣式 */
+        .btn-update { 
+            margin-top: 10px; 
+            width: 100%; 
+            display: none; 
+            background-color: #27ae60; 
+            color: white; 
+        }
+        /* 未中獎時按鈕變灰色且不可點擊 */
+        .btn-update:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            color: #ecf0f1;
+        }
+
         #displayArea {
             width: 100%;
             max-width: 500px;
@@ -77,9 +92,10 @@
         
         <div class="btn-group">
             <button class="btn-scan" onclick="startScanner()">重新掃描</button>
-            <button class="btn-query" onclick="handleAction('query')">手動查詢</button>
+            <button class="btn-query" onclick="handleAction('code')">手動查詢</button>
         </div>
-        <button id="updateConfirmBtn" class="btn-update" style="margin-top: 10px; width: 100%;" onclick="handleAction('updata')">確認領獎 (更新資料)</button>
+        
+        <button id="updateConfirmBtn" class="btn-update" onclick="handleAction('updata')">確認領獎 (更新資料)</button>
         
         <div id="status"></div>
     </div>
@@ -90,9 +106,10 @@
         const WEBHOOK_URL = 'https://projectboy-n8n-free.hf.space/webhook/bingo';
         let html5QrCode;
 
-        // 初始化掃描器
         function startScanner() {
-            // 清空之前的顯示
+            // 需求 1: 開啟相機時清除文字窗內容
+            document.getElementById('scannedResult').value = "";
+            
             document.getElementById('displayArea').innerHTML = "";
             document.getElementById('status').innerText = "相機啟動中...";
             document.getElementById('updateConfirmBtn').style.display = 'none';
@@ -101,20 +118,17 @@
                 html5QrCode = new Html5Qrcode("reader");
             }
 
-            // 1. 相機只用後置相機 (facingMode: environment)
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
             
             html5QrCode.start(
                 { facingMode: "environment" }, 
                 config,
                 (decodedText) => {
-                    // 掃描成功後的動作
                     document.getElementById('scannedResult').value = decodedText;
                     
-                    // 2. 掃描到資料後自動關閉相機
                     html5QrCode.stop().then(() => {
                         document.getElementById('status').innerText = "掃描成功，自動查詢中...";
-                        // 3. 自動開始查詢
+                        // 需求 2: 掃描後自動查詢，action 固定為 'code'
                         handleAction('code');
                     });
 
@@ -125,7 +139,6 @@
             });
         }
 
-        // 處理 n8n 請求 (包含 query 與 updata)
         async function handleAction(actionType) {
             const idValue = document.getElementById('scannedResult').value;
             const displayArea = document.getElementById('displayArea');
@@ -143,7 +156,6 @@
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    // 增加回傳參數 action
                     body: JSON.stringify({ 
                         action: actionType, 
                         id: idValue 
@@ -153,13 +165,24 @@
                 const content = await response.text();
 
                 if (actionType === 'code') {
-                    // 顯示 n8n 回傳的 HTML 卡片
                     displayArea.innerHTML = content;
                     status.innerText = "查詢完成";
-                    // 查詢成功後，顯示「確認領獎」按鈕
+
+                    // 需求 3: 資料回傳後顯示按鈕，並判斷是否中獎
                     updateBtn.style.display = 'block';
-                } else {
-                    // 更新成功後的動作
+                    
+                    // 邏輯判斷：檢查回傳的 HTML 中是否包含「恭喜中獎」
+                    // 如果 n8n 回傳的是「目前很可惜沒中獎」，按鈕變灰色不可按
+                    if (content.includes("恭喜中獎")) {
+                        updateBtn.disabled = false;
+                        updateBtn.innerText = "確認領獎 (更新資料)";
+                    } else {
+                        updateBtn.disabled = true;
+                        updateBtn.innerText = "未中獎 (無法領獎)";
+                    }
+
+                } else if (actionType === 'updata') {
+                    // 需求 4: 按下領獎回傳 action 為 'updata'
                     alert("✅ 領獎狀態已成功更新！");
                     status.innerText = "資料已更新";
                     updateBtn.style.display = 'none';
@@ -170,10 +193,7 @@
             }
         }
 
-        // 頁面載入後自動開啟相機
         window.onload = startScanner;
     </script>
 </body>
 </html>
-
-
