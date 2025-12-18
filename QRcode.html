@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>抽獎掃描與核銷系統2</title>
+    <title>抽獎領獎與進度查詢系統</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
@@ -13,7 +13,9 @@
             align-items: center;
             padding: 20px;
             background-color: #f4f4f9;
+            color: #333;
         }
+        h2 { margin-bottom: 10px; color: #2c3e50; }
         #reader {
             width: 100%;
             max-width: 500px;
@@ -30,19 +32,21 @@
         textarea {
             width: 100%;
             height: 60px;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ccc;
             border-radius: 8px;
             font-size: 16px;
             box-sizing: border-box;
             margin-bottom: 10px;
+            resize: none;
         }
         .btn-group {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
+            margin-bottom: 10px;
         }
         button {
-            flex: 1;
             padding: 12px;
             font-size: 16px;
             font-weight: bold;
@@ -50,19 +54,24 @@
             border-radius: 8px;
             cursor: pointer;
             transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .btn-scan { background-color: #34495e; color: white; }
         .btn-query { background-color: #e74c3c; color: white; }
+        .btn-progress { background-color: #f39c12; color: white; grid-column: span 2; }
         
-        /* 確認領獎按鈕樣式 */
+        button:active { opacity: 0.8; }
+
+        /* 確認領獎按鈕 */
         .btn-update { 
-            margin-top: 10px; 
             width: 100%; 
             display: none; 
             background-color: #27ae60; 
-            color: white; 
+            color: white;
+            margin-bottom: 15px;
         }
-        /* 未中獎時按鈕變灰色且不可點擊 */
         .btn-update:disabled {
             background-color: #bdc3c7;
             cursor: not-allowed;
@@ -72,32 +81,39 @@
         #displayArea {
             width: 100%;
             max-width: 500px;
-            margin-top: 20px;
+            margin-top: 10px;
         }
         #status {
-            margin-top: 10px;
+            margin: 10px 0;
             font-size: 14px;
             color: #666;
+            font-weight: bold;
         }
+
+        /* 統計表格樣式 */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        th { background: #34495e; color: white; padding: 10px; font-size: 14px; }
+        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <h2>抽獎掃描系統</h2>
+    <h2>🎁 抽獎核銷與進度系統</h2>
     
     <div id="reader"></div>
 
     <div class="container">
-        <textarea id="scannedResult" placeholder="掃描編號或手動輸入..."></textarea>
+        <textarea id="scannedResult" placeholder="點擊重新掃描或在此手動輸入編號..."></textarea>
         
         <div class="btn-group">
-            <button class="btn-scan" onclick="startScanner()">點我掃描</button>
-            <button class="btn-query" onclick="handleAction('code')">手動查詢</button>
+            <button class="btn-scan" onclick="startScanner()">🔄 重新掃描</button>
+            <button class="btn-query" onclick="handleAction('code')">🔍 手動查詢</button>
+            <button class="btn-progress" onclick="handleAction('progress')">📊 查看全體領獎進度</button>
         </div>
         
-        <button id="updateConfirmBtn" class="btn-update" onclick="handleAction('updata')">確認領獎 (更新資料)</button>
+        <button id="updateConfirmBtn" class="btn-update" onclick="handleAction('updata')">✅ 確認領獎 (更新至試算表)</button>
         
-        <div id="status"></div>
+        <div id="status">準備就緒</div>
     </div>
 
     <div id="displayArea"></div>
@@ -107,9 +123,7 @@
         let html5QrCode;
 
         function startScanner() {
-            // 需求 1: 開啟相機時清除文字窗內容
             document.getElementById('scannedResult').value = "";
-            
             document.getElementById('displayArea').innerHTML = "";
             document.getElementById('status').innerText = "相機啟動中...";
             document.getElementById('updateConfirmBtn').style.display = 'none';
@@ -125,87 +139,86 @@
                 config,
                 (decodedText) => {
                     document.getElementById('scannedResult').value = decodedText;
-                    
                     html5QrCode.stop().then(() => {
                         document.getElementById('status').innerText = "掃描成功，自動查詢中...";
-                        // 需求 2: 掃描後自動查詢，action 固定為 'code'
                         handleAction('code');
                     });
-
                     if (navigator.vibrate) navigator.vibrate(100);
                 }
             ).catch(err => {
-                document.getElementById('status').innerText = "無法開啟相機，請檢查權限或 HTTPS。";
+                document.getElementById('status').innerText = "無法開啟相機，請檢查權限。";
             });
         }
 
         async function handleAction(actionType) {
-    const idValue = document.getElementById('scannedResult').value;
-    const displayArea = document.getElementById('displayArea');
-    const status = document.getElementById('status');
-    const updateBtn = document.getElementById('updateConfirmBtn');
+            const idValue = document.getElementById('scannedResult').value;
+            const displayArea = document.getElementById('displayArea');
+            const status = document.getElementById('status');
+            const updateBtn = document.getElementById('updateConfirmBtn');
 
-    if (!idValue) {
-        alert("請先輸入或掃描編號");
-        return;
-    }
-
-    status.innerText = actionType === 'code' ? "查詢資料中..." : "核銷更新中...";
-
-    try {
-        const response = await fetch(WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                action: actionType, 
-                id: idValue 
-            })
-        });
-
-        const content = await response.text();
-
-        if (actionType === 'code') {
-            displayArea.innerHTML = content;
-            status.innerText = "查詢完成";
-            updateBtn.style.display = 'block';
-
-            // --- 新增的判斷邏輯 ---
-            
-            // 1. 先看是否中獎 (包含 "恭喜中獎" 字樣)
-            if (content.includes("恭喜中獎")) {
-                // 2. 再看隱藏標籤，檢查是否為「已領獎」
-                if (content.includes("ALREADY_CLAIMED")) {
-                    updateBtn.disabled = true;
-                    updateBtn.innerText = "已領獎 (不可重複領取)";
-                } else {
-                    updateBtn.disabled = false;
-                    updateBtn.innerText = "確認領獎 (更新資料)";
-                }
-            } else if (content.includes("此獎項已領取")) {
-                // 如果已經領過了，直接鎖定按鈕
-                updateBtn.disabled = true;
-                updateBtn.innerText = "已領獎";
-            } else {
-                // 未中獎的情況
-                updateBtn.disabled = true;
-                updateBtn.innerText = "未中獎 (無法領獎)";
+            // 只有 progress 不需要填寫 ID
+            if (actionType !== 'progress' && !idValue) {
+                alert("請先輸入或掃描編號");
+                return;
             }
-            // -----------------------
 
-        } else if (actionType === 'updata') {
-            alert("✅ 領獎狀態已成功更新！");
-            status.innerText = "資料已更新";
-            updateBtn.style.display = 'none';
-            displayArea.innerHTML = ""; 
+            status.innerText = "連線中，請稍候...";
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: actionType, 
+                        id: idValue || "GLOBAL" 
+                    })
+                });
+
+                const content = await response.text();
+
+                if (actionType === 'progress') {
+                    // 顯示統計進度
+                    displayArea.innerHTML = content;
+                    status.innerText = "統計更新完成";
+                    updateBtn.style.display = 'none';
+                } 
+                else if (actionType === 'code') {
+                    displayArea.innerHTML = content;
+                    status.innerText = "查詢完成";
+                    updateBtn.style.display = 'block';
+
+                    // 邏輯判斷：根據 n8n 回傳的文字內容決定按鈕狀態
+                    // 1. 優先檢查是否已經領過 (不論有沒有恭喜中獎字樣)
+                    if (content.includes("ALREADY_CLAIMED") || content.includes("此獎項已領取")) {
+                        updateBtn.disabled = true;
+                        updateBtn.style.backgroundColor = "#bdc3c7";
+                        updateBtn.innerText = "🚫 已領獎 (不可重複領取)";
+                    } 
+                    // 2. 如果沒領過，檢查是否中獎
+                    else if (content.includes("恭喜中獎")) {
+                        updateBtn.disabled = false;
+                        updateBtn.style.backgroundColor = "#27ae60";
+                        updateBtn.innerText = "✅ 確認領獎 (更新資料)";
+                    } 
+                    // 3. 既沒領過也沒中獎
+                    else {
+                        updateBtn.disabled = true;
+                        updateBtn.style.backgroundColor = "#bdc3c7";
+                        updateBtn.innerText = "❌ 未中獎 (無法領獎)";
+                    }
+                } 
+                else if (actionType === 'updata') {
+                    alert("✅ 領獎狀態已成功更新！");
+                    status.innerText = "狀態：已完成核銷";
+                    updateBtn.style.display = 'none';
+                    displayArea.innerHTML = "<h3>核銷成功！</h3>"; 
+                }
+            } catch (error) {
+                status.innerText = "連線失敗：" + error.message;
+            }
         }
-    } catch (error) {
-        status.innerText = "連線失敗：" + error.message;
-    }
-}
 
         
     </script>
 </body>
 </html>
-
-
