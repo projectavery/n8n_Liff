@@ -140,60 +140,71 @@
         }
 
         async function handleAction(actionType) {
-            const idValue = document.getElementById('scannedResult').value;
-            const displayArea = document.getElementById('displayArea');
-            const status = document.getElementById('status');
-            const updateBtn = document.getElementById('updateConfirmBtn');
+    const idValue = document.getElementById('scannedResult').value;
+    const displayArea = document.getElementById('displayArea');
+    const status = document.getElementById('status');
+    const updateBtn = document.getElementById('updateConfirmBtn');
 
-            if (!idValue) {
-                alert("請先輸入或掃描編號");
-                return;
-            }
+    if (!idValue) {
+        alert("請先輸入或掃描編號");
+        return;
+    }
 
-            status.innerText = actionType === 'code' ? "查詢資料中..." : "核銷更新中...";
+    status.innerText = actionType === 'code' ? "查詢資料中..." : "核銷更新中...";
 
-            try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        action: actionType, 
-                        id: idValue 
-                    })
-                });
+    try {
+        const response = await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: actionType, 
+                id: idValue 
+            })
+        });
 
-                const content = await response.text();
+        const content = await response.text();
 
-                if (actionType === 'code') {
-                    displayArea.innerHTML = content;
-                    status.innerText = "查詢完成";
+        if (actionType === 'code') {
+            displayArea.innerHTML = content;
+            status.innerText = "查詢完成";
+            updateBtn.style.display = 'block';
 
-                    // 需求 3: 資料回傳後顯示按鈕，並判斷是否中獎
-                    updateBtn.style.display = 'block';
-                    
-                    // 邏輯判斷：檢查回傳的 HTML 中是否包含「恭喜中獎」
-                    // 如果 n8n 回傳的是「目前很可惜沒中獎」，按鈕變灰色不可按
-                    if (content.includes("恭喜中獎")) {
-                        updateBtn.disabled = false;
-                        updateBtn.innerText = "確認領獎 (更新資料)";
-                    } else {
-                        updateBtn.disabled = true;
-                        updateBtn.innerText = "未中獎 (無法領獎)";
-                    }
-
-                } else if (actionType === 'updata') {
-                    // 需求 4: 按下領獎回傳 action 為 'updata'
-                    alert("✅ 領獎狀態已成功更新！");
-                    status.innerText = "資料已更新";
-                    updateBtn.style.display = 'none';
-                    displayArea.innerHTML = ""; 
+            // --- 新增的判斷邏輯 ---
+            
+            // 1. 先看是否中獎 (包含 "恭喜中獎" 字樣)
+            if (content.includes("恭喜中獎")) {
+                // 2. 再看隱藏標籤，檢查是否為「已領獎」
+                if (content.includes("ALREADY_CLAIMED")) {
+                    updateBtn.disabled = true;
+                    updateBtn.innerText = "已領獎 (不可重複領取)";
+                } else {
+                    updateBtn.disabled = false;
+                    updateBtn.innerText = "確認領獎 (更新資料)";
                 }
-            } catch (error) {
-                status.innerText = "連線失敗：" + error.message;
+            } else if (content.includes("此獎項已領取")) {
+                // 如果已經領過了，直接鎖定按鈕
+                updateBtn.disabled = true;
+                updateBtn.innerText = "已領獎";
+            } else {
+                // 未中獎的情況
+                updateBtn.disabled = true;
+                updateBtn.innerText = "未中獎 (無法領獎)";
             }
+            // -----------------------
+
+        } else if (actionType === 'updata') {
+            alert("✅ 領獎狀態已成功更新！");
+            status.innerText = "資料已更新";
+            updateBtn.style.display = 'none';
+            displayArea.innerHTML = ""; 
         }
+    } catch (error) {
+        status.innerText = "連線失敗：" + error.message;
+    }
+}
 
         window.onload = startScanner;
     </script>
 </body>
 </html>
+
