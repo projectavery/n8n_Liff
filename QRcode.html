@@ -77,7 +77,7 @@
         
         <div class="btn-group">
             <button class="btn-scan" onclick="startScanner()">重新掃描</button>
-            <button class="btn-query" onclick="handleAction('query')">查詢</button>
+            <button class="btn-query" onclick="handleAction('query')">手動查詢</button>
         </div>
         <button id="updateConfirmBtn" class="btn-update" style="margin-top: 10px; width: 100%;" onclick="handleAction('updata')">確認領獎 (更新資料)</button>
         
@@ -137,7 +137,7 @@
                 return;
             }
 
-            status.innerText = actionType === 'query' ? "查詢資料中..." : "核銷更新中...";
+            status.innerText = actionType === 'code' ? "查詢資料中..." : "核銷更新中...";
 
             try {
                 const response = await fetch(WEBHOOK_URL, {
@@ -152,7 +152,7 @@
 
                 const content = await response.text();
 
-                if (actionType === 'query') {
+                if (actionType === 'code') {
                     // 顯示 n8n 回傳的 HTML 卡片
                     displayArea.innerHTML = content;
                     status.innerText = "查詢完成";
@@ -175,3 +175,4 @@
     </script>
 </body>
 </html>
+
