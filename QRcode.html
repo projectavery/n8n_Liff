@@ -115,7 +115,7 @@
                     html5QrCode.stop().then(() => {
                         document.getElementById('status').innerText = "掃描成功，自動查詢中...";
                         // 3. 自動開始查詢
-                        handleAction('query');
+                        handleAction('code');
                     });
 
                     if (navigator.vibrate) navigator.vibrate(100);
@@ -175,4 +175,5 @@
     </script>
 </body>
 </html>
+
 
