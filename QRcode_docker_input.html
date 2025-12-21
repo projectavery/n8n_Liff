@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽獎系統 Pro - 資料匯入</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .glass-morphism { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 to-blue-50 min-h-screen p-4 flex items-center justify-center">
+    
+    <div class="max-w-md w-full glass-morphism rounded-3xl shadow-2xl overflow-hidden border border-white">
+        <div class="bg-blue-600 p-6 text-white relative">
+            <h2 class="text-2xl font-bold flex items-center gap-2">
+                <span class="text-3xl">🎟️</span> 抽獎資料匯入系統
+            </h2>
+            <p class="text-blue-100 text-sm mt-1">請掃描 QR Code 或手動輸入票號</p>
+        </div>
+
+        <div class="p-6 space-y-5">
+            <div class="space-y-3">
+                <label class="block text-sm font-bold text-slate-600 ml-1">抽獎券號碼</label>
+                
+                <button id="startBtn" onclick="startScanner()" class="w-full bg-slate-800 text-white py-3 rounded-xl hover:bg-slate-700 transition-all flex items-center justify-center gap-3 shadow-md active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    啟動相機掃描
+                </button>
+
+                <div id="reader" class="hidden w-full bg-black rounded-2xl overflow-hidden border-4 border-slate-200"></div>
+
+                <input type="text" id="ticketNumber" placeholder="掃描結果或手動輸入" 
+                    class="block w-full rounded-xl border-gray-200 shadow-sm p-4 border-2 focus:ring-blue-500 focus:border-blue-500 text-xl font-mono tracking-wider transition-all">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-1">
+                    <label class="block text-sm font-bold text-slate-600 ml-1 mb-1">獎次</label>
+                    <select id="prizeCategory" class="block w-full rounded-xl border-gray-200 p-3 border-2 focus:ring-blue-500 bg-white" onchange="updatePrizeDetails()">
+                        <option value="">請選擇</option>
+                        <option value="特別獎">特別獎</option>
+                        <option value="頭獎">頭獎</option>
+                        <option value="二獎">二獎</option>
+                        <option value="三獎">三獎</option>
+                        <option value="四獎">四獎</option>
+                        <option value="五獎">五獎</option>
+                        <option value="六獎">六獎</option>
+                    </select>
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-sm font-bold text-slate-600 ml-1 mb-1">階段</label>
+                    <select id="stage" class="block w-full rounded-xl border-gray-200 p-3 border-2 focus:ring-blue-500 bg-white">
+                        <option value="">請選擇</option>
+                        <option value="第一階段">第一階段</option>
+                        <option value="第二階段">第二階段</option>
+                        <option value="第三階段">第三階段</option>
+                        <option value="第四階段">第四階段</option>
+                        <option value="第五階段">第五階段</option>
+                        <option value="第六階段">第六階段</option>
+                        <option value="第七階段">第七階段</option>
+                        <option value="第八階段">第八階段</option>
+                        <option value="第九階段">第九階段</option>
+                        <option value="第十階段">第十階段</option>
+                        <option value="第十一階段">第十一階段</option>
+                        <option value="第十二階段">第十二階段</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-blue-50/50 p-4 rounded-2xl space-y-3 border border-blue-100">
+                <div class="flex flex-col">
+                    <span class="text-[14px] font-black text-blue-400 uppercase tracking-widest">Prize Content / 獎品</span>
+                    <span id="prizeContent" class="text-sm text-slate-700 font-bold leading-relaxed">-</span>
+                </div>
+                <div class="flex flex-col border-t border-blue-100 pt-2">
+                    <span class="text-[14x] font-black text-amber-500 uppercase tracking-widest">Notes / 備註</span>
+                    <span id="prizeNote" class="text-sm text-amber-800">-</span>
+                </div>
+            </div>
+
+            <button id="submitBtn" onclick="sendData()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all duration-300 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-2 text-lg">
+                確認匯入資料
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const prizeData = {
+            "特別獎": { content: "一齊發~商品抵用劵_17,800元", note: "需身分證" },
+            "頭獎": { content: "一路發~商品抵用劵_16,800元", note: "需身分證" },
+            "二獎": { content: "土農讓你發~商品抵用劵_8,800元", note: "需身分證" },
+            "三獎": { content: "六六大順~商品抵用劵_6,000元", note: "需身分證" },
+            "四獎": { content: "月來越美麗富貴一整年富麗米12包(分次領取)", note: "可兌換商品抵用劵4,100元、需身分證" },
+            "五獎": { content: "月月歡囍願望成真囍願蛋12盒(分次領取)", note: "可兌換商品抵用劵2,800元、需身分證" },
+            "六獎": { content: "龍鳳呈祥好運年菜", note: "可兌換商品抵用劵2,300元、需身分證" }
+        };
+
+        const html5QrCode = new Html5Qrcode("reader");
+        const qrConfig = { fps: 20, qrbox: { width: 250, height: 250 } };
+
+        function startScanner() {
+            resetForm();
+            document.getElementById('reader').classList.remove('hidden');
+            document.getElementById('startBtn').classList.add('hidden');
+            
+            html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText) => {
+                document.getElementById('ticketNumber').value = decodedText;
+                stopScanner();
+                // 震動回饋 (手機端支援)
+                if (navigator.vibrate) navigator.vibrate(100);
+            }).catch(err => {
+                Swal.fire('錯誤', '相機啟動失敗', 'error');
+                stopScanner();
+            });
+        }
+
+        function stopScanner() {
+            html5QrCode.stop().then(() => {
+                document.getElementById('reader').classList.add('hidden');
+                document.getElementById('startBtn').classList.remove('hidden');
+            }).catch(() => {
+                document.getElementById('reader').classList.add('hidden');
+                document.getElementById('startBtn').classList.remove('hidden');
+            });
+        }
+
+        function updatePrizeDetails() {
+            const category = document.getElementById('prizeCategory').value;
+            const content = document.getElementById('prizeContent');
+            const note = document.getElementById('prizeNote');
+            if (category && prizeData[category]) {
+                content.innerText = prizeData[category].content;
+                note.innerText = prizeData[category].note;
+            } else {
+                content.innerText = "-";
+                note.innerText = "-";
+            }
+        }
+
+        async function sendData() {
+            const ticketNum = document.getElementById('ticketNumber').value;
+            const prize = document.getElementById('prizeCategory').value;
+            const stage = document.getElementById('stage').value;
+            const btn = document.getElementById('submitBtn');
+
+            if (!ticketNum) return Swal.fire('提示', '請先掃描或輸入號碼', 'warning');
+            if (!prize) return Swal.fire('提示', '請選擇獎次', 'warning');
+            if (!stage) return Swal.fire('提示', '請選擇抽獎階段', 'warning');
+
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> 處理中...`;
+
+            try {
+                const response = await fetch("https://buck-decent-bobcat.ngrok-free.app/webhook/new_bingo", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "input", // <--- 新增的屬性，用於 n8n 判斷
+                        ticket_number: ticketNum,
+                        prize_category: prize,
+                        draw_stage: stage,
+                        prize_content: document.getElementById('prizeContent').innerText,
+                        prize_note: document.getElementById('prizeNote').innerText
+                    })
+                });
+
+                const resultText = await response.text();
+
+                // 根據回傳文字動態顯示 SweetAlert2
+                if (resultText.includes("成功")) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: '成功',
+                        text: resultText,
+                        confirmButtonColor: '#2563eb',
+                        timer: 2000
+                    });
+                    resetForm();
+                } else if (resultText.includes("存在")) {
+                    await Swal.fire({
+                        icon: 'warning',
+                        title: '重複提示',
+                        text: resultText,
+                        confirmButtonColor: '#f59e0b'
+                    });
+                    btn.disabled = false;
+                    btn.innerText = "確認匯入資料";
+                } else {
+                    await Swal.fire('回應', resultText, 'info');
+                    btn.disabled = false;
+                    btn.innerText = "確認匯入資料";
+                }
+
+            } catch (error) {
+                Swal.fire('失敗', '網路連線異常，請檢查環境', 'error');
+                btn.disabled = false;
+                btn.innerText = "確認匯入資料";
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('ticketNumber').value = "";
+            document.getElementById('prizeCategory').value = "";
+            document.getElementById('stage').value = "";
+            document.getElementById('prizeContent').innerText = "-";
+            document.getElementById('prizeNote').innerText = "-";
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = false;
+            btn.innerText = "確認匯入資料";
+        }
+    </script>
+</body>
+</html>
