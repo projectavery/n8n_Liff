@@ -191,17 +191,17 @@
                         confirmButtonColor: '#f59e0b'
                     });
                     btn.disabled = false;
-                    btn.innerText = "確認匯入資料";
+                    btn.innerText = "匯入資料";
                 } else {
                     await Swal.fire('回應', resultText, 'info');
                     btn.disabled = false;
-                    btn.innerText = "確認匯入資料";
+                    btn.innerText = "匯入資料";
                 }
 
             } catch (error) {
                 Swal.fire('失敗', '網路連線異常，請檢查環境', 'error');
                 btn.disabled = false;
-                btn.innerText = "確認匯入資料";
+                btn.innerText = "匯入資料";
             }
         }
 
@@ -219,3 +219,4 @@
 </body>
 
 </html>
+
