@@ -72,10 +72,12 @@
             color: white;
             margin-bottom: 15px;
         }
-        .btn-update:disabled {
-            background-color: #bdc3c7;
+        /* 禁用狀態的樣式 */
+        button:disabled {
+            background-color: #bdc3c7 !important;
             cursor: not-allowed;
             color: #ecf0f1;
+            opacity: 0.7;
         }
 
         #displayArea {
@@ -86,12 +88,12 @@
         #status {
             margin: 10px 0;
             font-size: 14px;
-            color: #666;
+            color: #e67e22;
             font-weight: bold;
         }
 
         /* 統計表格樣式 */
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-top: 10px; }
         th { background: #34495e; color: white; padding: 10px; font-size: 14px; }
         td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; }
     </style>
@@ -122,47 +124,66 @@
         const WEBHOOK_URL = 'https://projectboy-n8n-free.hf.space/webhook/new_bingo';
         let html5QrCode;
 
-        function startScanner() {
+        // 啟動相機 (針對安卓優化)
+        async function startScanner() {
             document.getElementById('scannedResult').value = "";
             document.getElementById('displayArea').innerHTML = "";
             document.getElementById('status').innerText = "相機啟動中...";
             document.getElementById('updateConfirmBtn').style.display = 'none';
 
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("reader");
+            if (html5QrCode && html5QrCode.isScanning) {
+                try {
+                    await html5QrCode.stop();
+                } catch (e) { console.warn(e); }
             }
 
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            html5QrCode = new Html5Qrcode("reader");
+
+            const config = { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0 
+            };
             
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                config,
-                (decodedText) => {
-                    document.getElementById('scannedResult').value = decodedText;
-                    html5QrCode.stop().then(() => {
-                        document.getElementById('status').innerText = "掃描成功，自動查詢中...";
-                        handleAction('code');
-                    });
-                    if (navigator.vibrate) navigator.vibrate(100);
-                }
-            ).catch(err => {
-                document.getElementById('status').innerText = "無法開啟相機，請檢查權限。";
-            });
+            try {
+                await html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    config,
+                    (decodedText) => {
+                        document.getElementById('scannedResult').value = decodedText;
+                        html5QrCode.stop().then(() => {
+                            document.getElementById('status').innerText = "掃描成功，自動查詢中...";
+                            handleAction('code');
+                        });
+                        if (navigator.vibrate) navigator.vibrate(100);
+                    }
+                );
+                document.getElementById('status').innerText = "相機已就緒";
+            } catch (err) {
+                document.getElementById('status').innerText = "無法開啟相機：" + err;
+            }
         }
 
+        // 統一處理按鈕動作 (含反灰鎖定邏輯)
         async function handleAction(actionType) {
             const idValue = document.getElementById('scannedResult').value;
             const displayArea = document.getElementById('displayArea');
             const status = document.getElementById('status');
             const updateBtn = document.getElementById('updateConfirmBtn');
+            const allButtons = document.querySelectorAll('button');
 
-            // 只有 progress 不需要填寫 ID
             if (actionType !== 'progress' && !idValue) {
                 alert("請先輸入或掃描編號");
                 return;
             }
 
+            // --- 鎖定所有按鈕 ---
             status.innerText = "連線中，請稍候...";
+            allButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.innerText; // 備份原始文字
+                btn.innerText = "處理中...";
+            });
 
             try {
                 const response = await fetch(WEBHOOK_URL, {
@@ -177,7 +198,6 @@
                 const content = await response.text();
 
                 if (actionType === 'progress') {
-                    // 顯示統計進度
                     displayArea.innerHTML = content;
                     status.innerText = "統計更新完成";
                     updateBtn.style.display = 'none';
@@ -187,23 +207,17 @@
                     status.innerText = "查詢完成";
                     updateBtn.style.display = 'block';
 
-                    // 邏輯判斷：根據 n8n 回傳的文字內容決定按鈕狀態
-                    // 1. 優先檢查是否已經領過 (不論有沒有恭喜中獎字樣)
+                    // 判斷按鈕下一次該不該被啟用
                     if (content.includes("ALREADY_CLAIMED") || content.includes("此獎項已領取")) {
-                        updateBtn.disabled = true;
-                        updateBtn.style.backgroundColor = "#bdc3c7";
+                        updateBtn.dataset.forceDisabled = "true";
                         updateBtn.innerText = "🚫 已領獎 (不可重複領取)";
                     } 
-                    // 2. 如果沒領過，檢查是否中獎
                     else if (content.includes("恭喜中獎")) {
-                        updateBtn.disabled = false;
-                        updateBtn.style.backgroundColor = "#27ae60";
+                        updateBtn.dataset.forceDisabled = "false";
                         updateBtn.innerText = "✅ 確認領獎 (更新資料)";
                     } 
-                    // 3. 既沒領過也沒中獎
                     else {
-                        updateBtn.disabled = true;
-                        updateBtn.style.backgroundColor = "#bdc3c7";
+                        updateBtn.dataset.forceDisabled = "true";
                         updateBtn.innerText = "❌ 未中獎 (無法領獎)";
                     }
                 } 
@@ -211,16 +225,25 @@
                     alert("✅ 領獎狀態已成功更新！");
                     status.innerText = "狀態：已完成核銷";
                     updateBtn.style.display = 'none';
-                    displayArea.innerHTML = "<h3>核銷成功！</h3>"; 
+                    displayArea.innerHTML = "<h3>✅ 核銷成功！</h3>"; 
                 }
             } catch (error) {
                 status.innerText = "連線失敗：" + error.message;
+                alert("網路連線錯誤");
+            } finally {
+                // --- 恢復按鈕狀態 ---
+                allButtons.forEach(btn => {
+                    if (btn.id === 'updateConfirmBtn') {
+                        // 確認領獎按鈕需遵從 forceDisabled 標記
+                        btn.disabled = (btn.dataset.forceDisabled === "true");
+                    } else {
+                        // 其他一般按鈕直接還原
+                        btn.disabled = false;
+                        btn.innerText = btn.dataset.originalText;
+                    }
+                });
             }
         }
-
-        
     </script>
 </body>
 </html>
-
-
