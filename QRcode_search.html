@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽獎領獎與進度查詢系統</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: -apple-system, "Microsoft JhengHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h2 { margin-bottom: 10px; color: #2c3e50; }
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 60px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            resize: none;
+        }
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-scan { background-color: #34495e; color: white; }
+        .btn-query { background-color: #e74c3c; color: white; }
+        .btn-progress { background-color: #f39c12; color: white; grid-column: span 2; }
+        
+        button:active { opacity: 0.8; }
+
+        /* 禁用狀態的樣式 */
+        button:disabled {
+            background-color: #bdc3c7 !important;
+            cursor: not-allowed;
+            color: #ecf0f1;
+            opacity: 0.7;
+        }
+
+        #displayArea {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 10px;
+        }
+        #status {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #e67e22;
+            font-weight: bold;
+        }
+
+        /* 統計表格樣式 */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-top: 10px; }
+        th { background: #34495e; color: white; padding: 10px; font-size: 14px; }
+        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <h2>🎟️ 獎項查詢</h2>
+    
+    <div id="reader"></div>
+
+    <div class="container">
+        <textarea id="scannedResult" placeholder="點擊重新掃描或在此手動輸入編號..."></textarea>
+        
+        <div class="btn-group">
+            <button class="btn-scan" onclick="startScanner()">🔄 啟動相機掃描</button>
+            <button class="btn-query" onclick="handleAction('code')">🔍 手動查詢</button>
+            <button class="btn-progress" onclick="handleAction('progress')">📊 查看全體領獎進度</button>
+        </div>
+        
+        <div id="status">準備就緒</div>
+    </div>
+
+    <div id="displayArea"></div>
+
+    <script>
+        const WEBHOOK_URL = 'https://projectboy-n8n-free.hf.space/webhook/new_bingo';
+        let html5QrCode;
+
+        async function startScanner() {
+            document.getElementById('scannedResult').value = "";
+            document.getElementById('displayArea').innerHTML = "";
+            document.getElementById('status').innerText = "相機啟動中...";
+
+            if (html5QrCode && html5QrCode.isScanning) {
+                try {
+                    await html5QrCode.stop();
+                } catch (e) { console.warn(e); }
+            }
+
+            html5QrCode = new Html5Qrcode("reader");
+
+            const config = { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0 
+            };
+            
+            try {
+                await html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    config,
+                    (decodedText) => {
+                        document.getElementById('scannedResult').value = decodedText;
+                        html5QrCode.stop().then(() => {
+                            document.getElementById('status').innerText = "掃描成功，自動查詢中...";
+                            handleAction('code');
+                        });
+                        if (navigator.vibrate) navigator.vibrate(100);
+                    }
+                );
+                document.getElementById('status').innerText = "相機已就緒";
+            } catch (err) {
+                document.getElementById('status').innerText = "無法開啟相機：" + err;
+            }
+        }
+
+        async function handleAction(actionType) {
+            const idValue = document.getElementById('scannedResult').value;
+            const displayArea = document.getElementById('displayArea');
+            const status = document.getElementById('status');
+            const allButtons = document.querySelectorAll('button');
+
+            if (actionType !== 'progress' && !idValue) {
+                alert("請先輸入或掃描編號");
+                return;
+            }
+
+            status.innerText = "連線中，請稍候...";
+            allButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.innerText;
+                btn.innerText = "處理中...";
+            });
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: actionType, 
+                        id: idValue || "GLOBAL" 
+                    })
+                });
+
+                const content = await response.text();
+
+                if (actionType === 'progress') {
+                    displayArea.innerHTML = content;
+                    status.innerText = "統計更新完成";
+                } 
+                else if (actionType === 'code') {
+                    displayArea.innerHTML = content;
+                    status.innerText = "查詢完成";
+                } 
+            } catch (error) {
+                status.innerText = "連線失敗：" + error.message;
+                alert("網路連線錯誤");
+            } finally {
+                allButtons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerText = btn.dataset.originalText;
+                });
+            }
+        }
+    </script>
+</body>
+</html>
