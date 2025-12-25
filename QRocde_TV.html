@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸運中獎名單看板</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        :root {
+            --warm-red: #8e1b1b;
+            --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f9e29c 50%, #b8860b 100%);
+            --highlight-gold: #ffeb3b; /* 極亮黃色用於備註 */
+            --bg-dark: #1a1616;
+            --card-bg: rgba(45, 38, 38, 0.95);
+        }
+
+        body {
+            /* 設定全域字體為標楷體 */
+            font-family: "DFKai-SB", "標楷體", "BiauKai", serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at center, #3d2b2b 0%, #1a1616 100%);
+            color: white;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #main-container {
+            width: 90%;
+            max-width: 1300px;
+            background: var(--card-bg);
+            padding: 50px;
+            border-radius: 40px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 20px rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            text-align: center;
+            position: relative;
+            transform: translateY(0);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        #main-container.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* 頂部裝飾條 */
+        #main-container::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 40%;
+            height: 6px;
+            background: var(--gold-gradient);
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+        .phase-tag {
+            display: inline-block;
+            background: var(--warm-red);
+            color: #fff;
+            padding: 8px 35px;
+            border-radius: 100px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            box-shadow: 0 4px 15px rgba(142, 27, 27, 0.4);
+            margin-bottom: 20px;
+        }
+
+        .prize-rank {
+            font-size: 4.2rem;
+            font-weight: bold;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .prize-content {
+            font-size: 2.2rem;
+            color: #e0d0d0;
+            margin-bottom: 35px;
+            font-weight: bold;
+        }
+
+        .numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 45px;
+        }
+
+        .ticket-no {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(180deg, rgba(70, 50, 50, 1) 0%, rgba(30, 25, 25, 1) 100%);
+            padding: 18px 5px;
+            border-radius: 15px;
+            border: 2px solid rgba(212, 175, 55, 0.5);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            letter-spacing: 4px;
+        }
+
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 2px solid rgba(255,255,255,0.1);
+            padding-top: 25px;
+            font-size: 1.4rem;
+        }
+
+        /* 備註欄位調亮 */
+        .remark-text {
+            color: var(--highlight-gold);
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
+        }
+
+        .page-info {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+
+        .loading { font-size: 2rem; color: #d4af37; }
+    </style>
+</head>
+<body>
+
+<div id="main-container">
+    <div class="loading">正在連線雲端資料庫...</div>
+</div>
+
+<script>
+    const targetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSkwZLmao8afS8265szRVJHa3s6tFRcS2pEc51_9k92ZS4VmYugFodOfaSYHY8xCSf_5xxwrJf5Epob/pub?gid=0&single=true&output=csv';
+    const PROXY_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+    
+    const PRIZE_ORDER = ["特別獎", "頭獎", "二獎", "三獎", "四獎", "五獎", "六獎", "七獎", "八獎", "九獎", "十獎", "十一獎", "十二獎", "十三獎", "十四獎", "十五獎", "十六獎", "十七獎", "十八獎", "十九獎", "二十獎", "二十一獎", "二十二獎"];
+
+    let groupedData = [];
+    let currentIndex = 0;
+
+    async function loadData() {
+        try {
+            const response = await fetch(PROXY_URL);
+            if (!response.ok) throw new Error('連線失敗');
+            const csvText = await response.text();
+            
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    processData(results.data);
+                }
+            });
+        } catch (err) {
+            document.getElementById('main-container').innerHTML = `<div class="loading">資料同步中，請稍候...</div>`;
+        }
+    }
+
+    function processData(rawData) {
+        let dictionary = {};
+
+        rawData.forEach((item) => {
+            const prizeName = (item['獎次'] || '').trim();
+            const prizeContent = (item['獎品內容'] || '').trim();
+            const key = prizeName + prizeContent;
+
+            if (!dictionary[key]) {
+                dictionary[key] = {
+                    phase: item['抽獎階段'],
+                    rank: prizeName,
+                    content: prizeContent,
+                    remark: item['備註'] || '無',
+                    allNumbers: []
+                };
+            }
+            dictionary[key].allNumbers.push(item['摸彩卷號碼']);
+        });
+
+        const sortedKeys = Object.keys(dictionary).sort((a, b) => {
+            let indexA = PRIZE_ORDER.indexOf(dictionary[a].rank);
+            let indexB = PRIZE_ORDER.indexOf(dictionary[b].rank);
+            if (indexA === -1) indexA = 999;
+            if (indexB === -1) indexB = 999;
+            return indexA - indexB;
+        });
+
+        const finalGroups = [];
+        sortedKeys.forEach(key => {
+            const data = dictionary[key];
+            for (let i = 0; i < data.allNumbers.length; i += 12) {
+                finalGroups.push({
+                    ...data,
+                    numbers: data.allNumbers.slice(i, i + 12)
+                });
+            }
+        });
+
+        groupedData = finalGroups;
+        if (groupedData.length > 0) renderDisplay();
+    }
+
+    function renderDisplay() {
+        const container = document.getElementById('main-container');
+        if (groupedData.length === 0) return;
+        
+        const group = groupedData[currentIndex];
+        container.classList.add('hidden');
+
+        setTimeout(() => {
+            const numbersHTML = group.numbers
+                .map(num => `<div class="ticket-no">${num}</div>`)
+                .join('');
+
+            container.innerHTML = `
+                <div class="phase-tag">${group.phase || ''}</div>
+                <div class="prize-rank">${group.rank || ''}</div>
+                <div class="prize-content">${group.content || ''}</div>
+                
+                <div class="numbers-grid">
+                    ${numbersHTML}
+                </div>
+
+                <div class="footer-info">
+                    <span class="remark-text">備註：${group.remark}</span>
+                    <span class="page-info">頁次 ${currentIndex + 1} / ${groupedData.length}</span>
+                </div>
+            `;
+            container.classList.remove('hidden');
+            currentIndex = (currentIndex + 1) % groupedData.length;
+        }, 600);
+    }
+
+    loadData();
+    /* // 10秒翻頁一次 */
+    setInterval(renderDisplay, 5000);
+    /* // 5分鐘刷新一次資料*/
+    setInterval(loadData, 300000);      
+</script>
+
+</body>
+</html>
