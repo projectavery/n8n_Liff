@@ -6,77 +6,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>悼念花籃訂購單</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: 'Segoe UI', Arial, 'Microsoft JhengHei', sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             padding: 20px;
             background-color: #e9ecef;
             color: #333;
         }
 
+        /* 新增：載入指示器的樣式，確保覆蓋全螢幕 */
         #loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #f8f9fa;
+            background-color: #f8f9fa; /* 輕微的背景色 */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            font-size: 1.2em;
+            z-index: 9999; /* 確保在最上層 */
+            font-size: 1.5em;
             color: #007bff;
         }
 
+        /* 旋轉動畫，讓使用者知道網頁沒有卡住 */
         .spinner {
             border: 5px solid #f3f3f3;
             border-top: 5px solid #007bff;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+            0% {
+                transform: rotate(0deg);
+            }
 
-        .progress-container {
-            width: 80%;
-            max-width: 400px;
-            height: 8px;
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 20px 0 10px 0;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 10px;
-        }
-
-        .progress-text {
-            font-size: 0.9em;
-            color: #6c757d;
-            margin-top: 5px;
-        }
-
-        .progress-percentage {
-            font-weight: bold;
-            color: #007bff;
-            font-size: 1.1em;
-            margin-top: 10px;
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .container {
@@ -86,15 +59,13 @@
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            /* 預設隱藏，等待 LIFF 和資料載入完成後再顯示 */
+            display: none;
         }
 
-        .container.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
+            .container.active {
+                display: block;
+            }
 
         .section {
             margin-bottom: 30px;
@@ -108,12 +79,12 @@
             background-color: #f8f9fa;
         }
 
-        .line-profile-section h2 {
-            font-size: 1.1em;
-            color: #212529;
-            margin: 0 0 10px 0;
-            border-bottom: none;
-        }
+            .line-profile-section h2 {
+                font-size: 1.1em;
+                color: #212529;
+                margin: 0 0 10px 0;
+                border-bottom: none;
+            }
 
         .line-profile-details {
             display: flex;
@@ -121,30 +92,30 @@
             gap: 15px;
         }
 
-        .line-profile-details img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid #007bff;
-            object-fit: cover;
-        }
+            .line-profile-details img {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                border: 2px solid #007bff;
+                object-fit: cover;
+            }
 
-        .line-profile-details > div {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+            .line-profile-details > div {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
 
-        .line-profile-details p {
-            margin: 0;
-            font-size: 0.9em;
-            color: #555;
-        }
+            .line-profile-details p {
+                margin: 0;
+                font-size: 0.9em;
+                color: #555;
+            }
 
-        .line-profile-details span {
-            font-weight: bold;
-            color: #343a40;
-        }
+            .line-profile-details span {
+                font-weight: bold;
+                color: #343a40;
+            }
 
         h2 {
             font-size: 1.6em;
@@ -173,11 +144,11 @@
             font-size: 1.2em;
         }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-        }
+            input:focus, select:focus {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            }
 
         .checkbox-group, .radio-group {
             display: flex;
@@ -186,20 +157,20 @@
             margin-bottom: 20px;
         }
 
-        .checkbox-group label, .radio-group label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: normal;
-            font-size: 1em;
-            cursor: pointer;
-        }
+            .checkbox-group label, .radio-group label {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: normal;
+                font-size: 1em;
+                cursor: pointer;
+            }
 
-        .checkbox-group input[type="checkbox"], .radio-group input[type="radio"] {
-            margin-bottom: 0;
-            width: 20px;
-            height: 20px;
-        }
+            .checkbox-group input[type="checkbox"], .radio-group input[type="radio"] {
+                margin-bottom: 0;
+                width: 20px;
+                height: 20px;
+            }
 
         .product-details, .details-section {
             display: none;
@@ -212,26 +183,26 @@
             border-radius: 8px;
         }
 
-        .product-details.active {
-            display: block;
-        }
+            .product-details.active {
+                display: block;
+            }
 
-        .product-details h3 {
-            margin-top: 0;
-            color: #218838;
-            font-size: 1.3em;
-        }
+            .product-details h3 {
+                margin-top: 0;
+                color: #218838;
+                font-size: 1.3em;
+            }
 
-        .product-details .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-        }
+            .product-details .form-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 20px;
+            }
 
-        .product-details .form-row > div {
-            display: flex;
-            flex-direction: column;
-        }
+                .product-details .form-row > div {
+                    display: flex;
+                    flex-direction: column;
+                }
 
         .price-box {
             background-color: #e9ecef;
@@ -261,10 +232,10 @@
             font-weight: bold;
         }
 
-        .submit-button:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
-        }
+            .submit-button:hover {
+                background-color: #218838;
+                transform: translateY(-2px);
+            }
 
         .error {
             border-color: #dc3545 !important;
@@ -280,12 +251,9 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
             justify-content: center;
             align-items: center;
-        }
-
-        .modal.show {
-            display: flex;
         }
 
         .modal-content {
@@ -304,6 +272,7 @@
                 opacity: 0;
                 transform: translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -333,847 +302,980 @@
             font-size: 32px;
             font-weight: bold;
             line-height: 1;
-            cursor: pointer;
         }
 
-        .close-btn:hover, .close-btn:focus {
-            color: #000;
-        }
+            .close-btn:hover, .close-btn:focus {
+                color: #000;
+                text-decoration: none;
+                cursor: pointer;
+            }
 
-        .modal-button {
-            padding: 12px 30px;
-            font-size: 1.1em;
-            cursor: pointer;
-            border: none;
+        .product-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
             border-radius: 8px;
-            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        .modal-button.confirm {
-            background-color: #007bff;
-            color: white;
-            margin-right: 15px;
+        .loading-select {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
         }
 
-        .modal-button.confirm:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
+        .details-section {
+            padding: 20px;
+            border: 1px dashed #007bff;
+            border-radius: 8px;
+            background-color: #f0f8ff;
+            margin-top: 10px;
         }
-
-        .modal-button.cancel {
-            background-color: #6c757d;
-            color: white;
+        /* 新增的樣式 */
+        .dedication-flex-container {
+            display: flex;
+            align-items: flex-end; /* 將勾選框與輸入框底部對齊 */
+            gap: 10px;
+            width: 100%;
         }
+            /* 調整勾選框群組，使其與輸入框高度對齊 */
+            .dedication-flex-container .checkbox-group {
+                margin-bottom: 20px;
+                /* 匹配輸入框的 margin-bottom */
+                width: auto;
+            }
 
-        .modal-button.cancel:hover {
-            background-color: #5a6268;
-            transform: translateY(-2px);
-        }
-
-        .modal-button.close {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .modal-button.close:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
-        }
-
-        .gallery {
+        /* 樣式新增：花籃樣式畫廊 */
+        .gallery-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
             margin-top: 20px;
+            padding: 10px;
+            border: 1px dashed #ced4da;
+            border-radius: 8px;
+            background-color: #fefefe;
         }
 
         .gallery-item {
-            cursor: pointer;
-            border: 3px solid transparent;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.3s, border-color 0.3s;
-        }
-
-        .gallery-item:hover {
-            transform: scale(1.05);
-            border-color: #007bff;
-        }
-
-        .gallery-item.selected {
-            border-color: #28a745;
-            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-        }
-
-        .gallery-item img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .kuse-branding {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #dee2e6;
             text-align: center;
-            font-size: 0.9em;
-            color: #6c757d;
+            padding: 10px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .kuse-branding a {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #007bff;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
+            .gallery-item:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
 
-        .kuse-branding a:hover {
-            color: #0056b3;
-        }
+            .gallery-item img {
+                width: 100%;
+                height: auto;
+                border-radius: 6px;
+                margin-bottom: 10px;
+                cursor: pointer; /* 讓圖片可以被點擊或放大 */
+            }
 
-        .kuse-branding svg {
-            height: 1.2em;
-            width: auto;
-        }
+            .gallery-item p {
+                margin: 0;
+                font-weight: bold;
+                color: #007bff;
+                font-size: 1.1em;
+            }
     </style>
 </head>
 <body>
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <div class="progress-percentage" id="progressPercentage">0%</div>
-        <div class="progress-text" id="progressText">正在初始化...</div>
+        <p>表單資料載入中，請稍候...</p>
     </div>
 
-    <div class="container" id="mainContainer">
-        <div class="line-profile-section" id="lineProfileSection" style="display: none;">
-            <h2>LINE 使用者資訊</h2>
+    <div class="container" id="main-form-container">
+        <div class="line-profile-section">
+            <h2>訂購人 LINE 資訊</h2>
             <div class="line-profile-details">
-                <img id="lineProfilePicture" src="" alt="使用者頭像">
+                <img id="line-avatar" src="https://via.placeholder.com/40" alt="大頭貼">
                 <div>
-                    <p><span id="lineDisplayName"></span></p>
-                    <p style="font-size: 0.85em; color: #6c757d;">User ID: <span id="lineUserId"></span></p>
+                    <p>顯示名稱：<span id="line-displayName">載入中...</span></p>
                 </div>
             </div>
         </div>
 
-        <form id="orderForm">
+        <input type="hidden" id="uid" name="uid">
+        <form id="aj_index">
             <div class="section">
-                <h2>訂購人資訊</h2>
-                <label for="ordererName">訂購人姓名 *</label>
-                <input type="text" id="ordererName" name="ordererName" required>
+                <h2>告別式資訊</h2>
+                <label for="funeralDate">告別式日期</label>
+                <input type="date" id="funeralDate" name="funeralDate" required>
 
-                <label for="ordererPhone">訂購人電話 *</label>
-                <input type="text" id="ordererPhone" name="ordererPhone" required>
+                <label for="deceasedName">案名</label>
+                <input type="text" id="deceasedName" name="deceasedName" required placeholder="請輸入亡者姓名">
 
-                <label for="ordererAddress">訂購人地址 *</label>
-                <input type="text" id="ordererAddress" name="ordererAddress" required>
-            </div>
-
-            <div class="section">
-                <h2>收件人資訊</h2>
-                <label for="recipientName">收件人姓名 *</label>
-                <input type="text" id="recipientName" name="recipientName" required>
-
-                <label for="recipientPhone">收件人電話 *</label>
-                <input type="text" id="recipientPhone" name="recipientPhone" required>
-
-                <label for="deliveryDate">送達日期 *</label>
-                <input type="date" id="deliveryDate" name="deliveryDate" required>
-
-                <label for="deliveryTime">送達時間 *</label>
-                <select id="deliveryTime" name="deliveryTime" required>
-                    <option value="">請選擇送達時間</option>
-                    <option value="上午">上午</option>
-                    <option value="下午">下午</option>
-                    <option value="晚上">晚上</option>
-                </select>
-            </div>
-
-            <div class="section">
-                <h2>送達地點</h2>
-                <label for="deliveryVenue">靈堂 *</label>
-                <select id="deliveryVenue" name="deliveryVenue" required>
-                    <option value="">請選擇靈堂</option>
-                </select>
-
-                <div id="hallContainer" style="display: none;">
-                    <label for="deliveryHall">廳別 *</label>
-                    <select id="deliveryHall" name="deliveryHall">
-                        <option value="">請選擇廳別</option>
-                    </select>
+                <label for="dedication">落款</label>
+                <div class="dedication-flex-container">
+                    <input type="text" id="dedication" name="dedication" placeholder="例如：某某某 敬輓" required>
                 </div>
 
-                <label for="deliveryCounty">縣市 *</label>
-                <select id="deliveryCounty" name="deliveryCounty" required>
-                    <option value="">請選擇縣市</option>
-                </select>
-
-                <label for="deliveryDistrict">鄉鎮市區 *</label>
-                <select id="deliveryDistrict" name="deliveryDistrict" required>
-                    <option value="">請選擇鄉鎮市區</option>
-                </select>
-
-                <label for="deliveryAddress">詳細地址 *</label>
-                <input type="text" id="deliveryAddress" name="deliveryAddress" required>
-            </div>
-
-            <div class="section">
-                <h2>商品選擇</h2>
-                <label>請選擇商品類型 *</label>
-                <div class="checkbox-group" id="productCheckboxes">
-                </div>
-            </div>
-
-            <div class="section">
-                <h2>花籃樣式</h2>
-                <label>請選擇花籃樣式</label>
-                <div class="gallery" id="basketGallery">
-                </div>
-                <input type="hidden" id="selectedBasketStyle" name="selectedBasketStyle">
-            </div>
-
-            <div class="section">
-                <h2>輓聯內容</h2>
-                <label for="elegiacCoupletTop">上聯</label>
-                <input type="text" id="elegiacCoupletTop" name="elegiacCoupletTop">
-
-                <label for="elegiacCoupletBottom">下聯</label>
-                <input type="text" id="elegiacCoupletBottom" name="elegiacCoupletBottom">
-
-                <label for="elegiacCoupletHorizontal">橫批</label>
-                <input type="text" id="elegiacCoupletHorizontal" name="elegiacCoupletHorizontal">
-
-                <label for="elegiacCoupletSignature">落款</label>
-                <input type="text" id="elegiacCoupletSignature" name="elegiacCoupletSignature">
-            </div>
-
-            <div class="section">
-                <h2>收據/發票</h2>
-                <label>是否需要收據或發票? *</label>
-                <div class="radio-group">
+                <div class="checkbox-group" style="display: none;">
+                    // 新增：隱藏選擇
                     <label>
-                        <input type="radio" name="receiptOption" value="不需要" checked>
-                        不需要
-                    </label>
-                    <label>
-                        <input type="radio" name="receiptOption" value="收據">
-                        收據
-                    </label>
-                    <label>
-                        <input type="radio" name="receiptOption" value="發票">
-                        發票
+                        <input type="checkbox" id="checkboxCompanyArrangement" name="companyArrangement"> 公司安排 (落款若想由公司安排請選我)
                     </label>
                 </div>
 
-                <div id="receiptDetails" class="details-section">
-                    <label for="receiptTitle">抬頭</label>
-                    <input type="text" id="receiptTitle" name="receiptTitle">
-                </div>
+                <label for="funeralVenue">告別式場館</label>
+                <select id="funeralVenue" name="funeralVenue" required onchange="updateHallSelect()">
+                    <option value="" disabled selected>請選擇場館</option>
+                </select>
 
-                <div id="invoiceDetails" class="details-section">
-                    <label for="invoiceTitle">抬頭</label>
-                    <input type="text" id="invoiceTitle" name="invoiceTitle">
+                <label for="hallName">廳別</label>
+                <select id="hallName" name="hallName" required>
+                    <option value="" disabled selected>請選擇廳別</option>
+                </select>
+            </div>
 
-                    <label for="invoiceTaxId">統一編號</label>
-                    <input type="text" id="invoiceTaxId" name="invoiceTaxId">
+            <hr>
+            <div class="section">
+                <h2>花籃樣式參考</h2>
+                <div id="product-gallery" class="gallery-container">
+                    <div style="text-align: center; grid-column: 1 / -1;">樣式資料載入中...</div>
                 </div>
             </div>
+
+            <hr>
 
             <div class="section">
-                <h2>其他資訊</h2>
-                <label>
-                    <input type="checkbox" id="companyArrangement" name="companyArrangement">
-                    公司安排
-                </label>
+                <h2>商品類別 (請勾選)</h2>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="checkboxFlowerBasket" name="productType" value="flowerBasket"> 花籃
+                    </label>
+                    <label>
+                        <input type="checkbox" id="checkboxWreath" name="productType" value="wreath"> 蝴蝶蘭
+                    </label>
+                    <label style="display: none;">
+                        // 新增：隱藏選擇
+                        <input type="checkbox" id="checkboxFruitBasket" name="productType" value="fruitBasket"> 水果籃
+                    </label>
+                </div>
 
-                <label for="notes">備註</label>
-                <input type="text" id="notes" name="notes">
+                <div id="flowerBasketDetails" class="product-details">
+                    <h3>花籃</h3>
+                    <img id="flowerBasketImage" src="" alt="花籃照片" class="product-image" style="display: none;">
+                    <div class="form-row">
+                        <div>
+                            <label for="flowerBasketStyle">樣式</label>
+                            <select id="flowerBasketStyle" name="flowerBasketStyle" onchange="updatePrice('flowerBasket')">
+                                <option value="" disabled selected>請選擇樣式</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="flowerBasketEulogy">輓詞</label>
+                            <input type="text" id="flowerBasketEulogy" name="flowerBasketEulogy" placeholder="例如：英容宛在、德澤長昭">
+                        </div>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="checkboxFlowerBasketEulogy" name="flowerBasketEulogy_company"> 公司安排 (輓詞若想由公司安排請選我)
+                            </label>
+                        </div>
+                        <div>
+                            <label for="flowerBasketPrice">單價</label>
+                            <input type="text" id="flowerBasketPrice" class="price-box" value="0" readonly>
+                        </div>
+                        <div>
+                            <label for="flowerBasketQty">數量</label>
+                            <input type="number" id="flowerBasketQty" name="flowerBasketQty" min="0" value="" oninput="calculateTotal()">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="wreathDetails" class="product-details">
+                    <h3>蝴蝶蘭</h3>
+                    <img id="wreathImage" src="" alt="蘭花照片" class="product-image" style="display: none;">
+                    <div class="form-row">
+                        <div>
+                            <label for="wreathStyle">樣式</label>
+                            <select id="wreathStyle" name="wreathStyle" onchange="updatePrice('wreath')">
+                                <option value="" disabled selected>請選擇樣式</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="wreathEulogy">輓詞</label>
+                            <input type="text" id="wreathEulogy" name="wreathEulogy" placeholder="例如：英容宛在、德澤長昭">
+                        </div>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="checkboxWreathEulogy" name="wreathEulogy_company"> 公司安排 (輓詞若想由公司安排請選我)
+                            </label>
+                        </div>
+                        <div>
+                            <label for="wreathPrice">單價</label>
+                            <input type="text" id="wreathPrice" class="price-box" value="0" readonly>
+                        </div>
+                        <div>
+                            <label for="wreathQty">數量</label>
+                            <input type="number" id="wreathQty" name="wreathQty" min="0" value="" oninput="calculateTotal()">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="fruitBasketDetails" class="product-details">
+                    <h3>水果籃</h3>
+                    <img id="fruitBasketImage" src="" alt="水果籃照片" class="product-image" style="display: none;">
+                    <div class="form-row">
+                        <div>
+                            <label for="fruitBasketStyle">樣式</label>
+                            <select id="fruitBasketStyle" name="fruitBasketStyle" onchange="updatePrice('fruitBasket')">
+                                <option value="" disabled selected>請選擇樣式</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="fruitBasketPrice">單價</label>
+                            <input type="text" id="fruitBasketPrice" class="price-box" value="0" readonly>
+                        </div>
+                        <div>
+                            <label for="fruitBasketQty">數量</label>
+                            <input type="number" id="fruitBasketQty" name="fruitBasketQty" min="0" value="" oninput="calculateTotal()">
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="section total-amount">
-                <h2>總金額</h2>
-                <input type="text" id="totalAmount" name="totalAmount" readonly value="NT$ 0">
+            <hr>
+
+            <div class="section">
+                <label for="lastFiveDigits">轉帳後五碼</label>
+                <input type="text" id="lastFiveDigits" name="lastFiveDigits" maxlength="5" required placeholder="請輸入轉帳帳號後五碼">
+                <label for="lastFiveDigits">※收到款項後才會統一下單安排</label>
+                <label for="lastFiveDigits">銀行代碼: 822 (中國信託)</label>
+                <label for="lastFiveDigits">帳號: 901566331875</label>
+                <label for="lastFiveDigits">戶名: 古舜鑫 先生</label>
+                <label for="lastFiveDigits">⚠️轉帳完成請主動聯繫官方LINE⚠️</label>
+
+                <div class="section">
+                    <h2>收據/發票資訊 (請選擇)</h2>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="receiptType" value="receipt"> 收據
+                        </label>
+                        <label>
+                            <input type="radio" name="receiptType" value="invoice"> 發票 (加 5% 營業稅)
+                        </label>
+                        <label>
+                            <input type="radio" name="receiptType" value="noNeed"> 不需要
+                        </label>
+                    </div>
+
+                    <div id="receipt-details" class="details-section" style="display: none;">
+                        <label for="receiptRecipient">收件人</label>
+                        <input type="text" id="receiptRecipient" name="receiptRecipient" placeholder="請輸入收件人姓名">
+                        <label for="receiptPhone">電話</label>
+                        <input type="text" id="receiptPhone" name="receiptPhone" placeholder="請輸入電話號碼">
+                        <div class="form-row">
+                            <div>
+                                <label for="receiptCounty">縣市</label>
+                                <select id="receiptCounty" name="receiptCounty" onchange="updateDistrictSelect('receipt')"></select>
+                            </div>
+                            <div>
+                                <label for="receiptDistrict">鄉鎮市區</label>
+                                <select id="receiptDistrict" name="receiptDistrict"></select>
+                            </div>
+                        </div>
+                        <label for="receiptAddress">寄送地址</label>
+                        <input type="text" id="receiptAddress" name="receiptAddress" placeholder="請輸入寄送地址">
+                    </div>
+
+                    <div id="invoice-details" class="details-section" style="display: none;">
+                        <label for="invoiceTitle">抬頭</label>
+                        <input type="text" id="invoiceTitle" name="invoiceTitle" placeholder="請輸入公司行號或機關團體名稱">
+                        <label for="invoiceTaxId">統一編號</label>
+                        <input type="text" id="invoiceTaxId" name="invoiceTaxId" placeholder="請輸入統一編號">
+                        <div class="form-row">
+                            <div>
+                                <label for="invoiceCounty">縣市</label>
+                                <select id="invoiceCounty" name="invoiceCounty" onchange="updateDistrictSelect('invoice')"></select>
+                            </div>
+                            <div>
+                                <label for="invoiceDistrict">鄉鎮市區</label>
+                                <select id="invoiceDistrict" name="invoiceDistrict"></select>
+                            </div>
+                        </div>
+                        <label for="invoiceAddress">地址</label>
+                        <input type="text" id="invoiceAddress" name="invoiceAddress" placeholder="請輸入公司地址">
+                        <label for="invoicePhone">電話</label>
+                        <input type="text" id="invoicePhone" name="invoicePhone" placeholder="請輸入公司電話">
+                    </div>
+                </div>
+
+                <div class="total-amount">
+                    <label for="totalAmount">合計金額</label>
+                    <input type="text" id="totalAmount" value="0" readonly>
+                </div>
             </div>
 
-            <button type="submit" class="submit-button">提交訂單</button>
+            <button type="submit" class="submit-button">送出訂單</button>
         </form>
-
-        <div class="kuse-branding">
-            <a href="https://kuse.ai" target="_blank" rel="noopener noreferrer">
-                <span>made with</span>
-                <svg viewBox="0,0,160,44" xmlns="http://www.w3.org/2000/svg"><path d="m.01,20.65C-.43,8.25,9.3-2.03,22.04.34,34.78,2.72,43.29,8.32,43.29,22.9s-8.66,19.01-22.03,20.3C7.9,44.5.46,33.05.01,20.65z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="m146.76,7.94c8.07,0,13.24,6.15,13.24,14.58v1.39h-20.75c.45,4.05,3.51,7.37,8.57,7.37,2.62,0,5.73-1.05,7.62-2.94l2.67,3.83c-2.67,2.55-6.62,3.88-10.9,3.88-8.07,0-14.08-5.6-14.08-14.08,0-7.76,5.67-14.02,13.63-14.02zm0,4.77c-5.01,0-7.29,3.83-7.57,7.1h15.13c-.11-3.16-2.28-7.1-7.57-7.1z" fill="currentColor"/><path d="m86.64,24.49c0,4.15,2.39,6.84,6.84,6.84,4.4,0,6.84-2.69,6.84-6.84V8.55h5.37v16.33c0,6.7-4.06,11.14-12.21,11.14-8.21,0-12.21-4.5-12.21-11.09V8.55h5.37v15.94zm32.99-16.55c4.49,0,8.06,1.47,10.6,3.86l-2.59,3.81c-2.05-2-5.28-3.08-8.06-3.08-2.88,0-4.84,1.37-4.84,3.32,0,1.91,2.64,2.54,5.81,3.27,4.59,1.08,10.26,2.4,10.26,8.46,0,4.94-3.76,8.41-11.14,8.41-4.98,0-8.94-1.76-11.24-4.11l2.54-4.11c1.86,1.91,5.18,3.67,8.84,3.67,3.91,0,5.57-1.66,5.57-3.62,0-2.3-2.88-2.98-6.21-3.76-4.54-1.08-9.87-2.3-9.87-8.06,0-4.5,4.2-8.06,10.31-8.06zM60.79,20.82,71.44,8.55h6.5L66.46,21.26,78.82,35.44h-6.5l-9.28-11.1-2.25,2.49v8.6h-5.33V8.55h5.33v12.27z" fill="currentColor"/></svg>
-            </a>
-        </div>
     </div>
 
-    <div id="confirmModal" class="modal">
+    <div id="customAlert" class="modal" style="display: none;">
         <div class="modal-content">
+            <span class="close-btn">&times;</span>
             <div class="modal-header">
-                <span class="close-btn" id="closeConfirmModal">&times;</span>
-                <h2>確認訂單</h2>
+                <h2 id="modalTitle"></h2>
             </div>
             <div class="modal-body">
-                <p id="confirmModalMessage"></p>
+                <p id="modalMessage"></p>
             </div>
             <div class="modal-footer">
-                <button class="modal-button confirm" id="confirmSubmit">確認送出</button>
-                <button class="modal-button cancel" id="cancelSubmit">取消</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="messageModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="close-btn" id="closeMessageModal">&times;</span>
-                <h2 id="messageModalTitle">訊息</h2>
-            </div>
-            <div class="modal-body">
-                <p id="messageModalContent"></p>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-button close" id="closeMessageButton">關閉</button>
+                <button id="modalOkBtn" class="submit-button">確定</button>
             </div>
         </div>
     </div>
 
     <script>
-        const CONFIG = {
-            liffId: `2008450540-rb9MReVE`,
-            lineOAId: `@814bnwhk`,
-            webhookUrl: `https://projectboy-n8n-free.hf.space/webhook/AJ_buy_online`,
-            webAppUrl: `https://script.google.com/macros/s/AKfycbwy-88SzOotqoJCfvmmi0_v3pB70k4u7WSaE7ApYrnitNWI9v1x3A3_BzD4w0WYU2A4/exec`,
-            retryAttempts: 3,
-            retryDelay: 1000
-        };
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwy-88SzOotqoJCfvmmi0_v3pB70k4u7WSaE7ApYrnitNWI9v1x3A3_BzD4w0WYU2A4/exec";
+        const LINE_OA_ID = "@814bnwhk";
+        const WEBHOOK_URL = "https://projectboy-n8n-free.hf.space/webhook/AJ_buy_online";
 
-        const DOM = {
-            loadingOverlay: null,
-            progressBar: null,
-            progressText: null,
-            progressPercentage: null,
-            mainContainer: null,
-            orderForm: null,
-            lineProfileSection: null
-        };
+        let venueAndHallData;
+        let productData;
+        let countyDistrictData;
+        let lineProfile = {};
 
-        const progressManager = {
-            current: 0,
-            steps: [
-                { percent: 10, text: `正在初始化 LIFF...` },
-                { percent: 20, text: `驗證 LINE 登入狀態...` },
-                { percent: 30, text: `檢查好友狀態...` },
-                { percent: 50, text: `載入靈堂資料...` },
-                { percent: 70, text: `載入商品資料...` },
-                { percent: 90, text: `載入地區資料...` },
-                { percent: 100, text: `載入完成!` }
-            ],
-            currentStep: 0,
+        // 取得 DOM 元素
+        const mainFormContainer = document.getElementById('main-form-container');
+        const loadingOverlay = document.getElementById('loading-overlay');
 
-            update(stepIndex) {
-                if (stepIndex >= this.steps.length) return;
-                
-                this.currentStep = stepIndex;
-                const step = this.steps[stepIndex];
-                
-                DOM.progressBar.style.width = `${step.percent}%`;
-                DOM.progressPercentage.textContent = `${step.percent}%`;
-                DOM.progressText.textContent = step.text;
-            },
 
-            complete() {
-                this.update(this.steps.length - 1);
-                setTimeout(() => {
-                    DOM.loadingOverlay.style.opacity = `0`;
-                    setTimeout(() => {
-                        DOM.loadingOverlay.style.display = `none`;
-                        DOM.mainContainer.classList.add(`active`);
-                    }, 300);
-                }, 500);
-            }
-        };
-
-        let productsData = [];
-        let venueHallData = {};
-        let countyDistrictData = {};
-
-        async function fetchWithRetry(url, options = {}, retries = CONFIG.retryAttempts) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return await response.json();
-                } catch (error) {
-                    if (i === retries - 1) throw error;
-                    await new Promise(resolve => setTimeout(resolve, CONFIG.retryDelay * (i + 1)));
-                }
-            }
-        }
-
-        async function loadAllData() {
+        async function initializeLiff() {
             try {
-                const [venueHallResponse, productsResponse, countyDistrictResponse] = await Promise.all([
-                    fetchWithRetry(`${CONFIG.webAppUrl}?action=getVenueAndHall`),
-                    fetchWithRetry(`${CONFIG.webAppUrl}?action=getProducts`),
-                    fetchWithRetry(`${CONFIG.webAppUrl}?action=getCountyDistrict`)
-                ]);
+                if (!liff.isInClient()) {
+                    showCustomAlert('開啟方式錯誤 🚫', '此網頁需在 LINE 應用程式內開啟。');
+                    // 即使不在 LIFF 內，也要停止載入指示，避免卡住
+                    loadingOverlay.style.display = 'none';
+                    return;
+                }
 
-                venueHallData = venueHallResponse.data || {};
-                productsData = productsResponse.data || [];
-                countyDistrictData = countyDistrictResponse.data || {};
+                // LIFF 初始化，必須等待完成
+                await liff.init({
+                    liffId: "2008450540-rb9MReVE"
+                });
 
-                return true;
-            } catch (error) {
-                console.error(`載入資料失敗:`, error);
-                showMessage(`資料載入失敗`, `無法載入表單資料,請重新整理頁面再試一次。\n\n錯誤訊息: ${error.message}`);
-                return false;
+                if (liff.isLoggedIn()) {
+                    const friendshipStatus = await liff.getFriendship();
+                    if (friendshipStatus.friendFlag) {
+                        // 1. 取得 LINE 資訊
+                        await getLineProfile();
+                        // 2. 載入表單資料 (此步驟需要時間)
+                        await loadFormData();
+
+                        // 3. 所有資料載入完成，顯示主表單，隱藏載入指示器
+                        loadingOverlay.style.display = 'none';
+                        mainFormContainer.classList.add('active');
+
+                    } else {
+                        showCustomAlert('請先加入好友 💖', '為確保服務品質，請先將我們官方帳號加入好友。', () => {
+                            liff.openWindow({
+                                url: `https://line.me/R/ti/p/${LINE_OA_ID}`,
+                                external: true
+                            });
+                        });
+                        loadingOverlay.style.display = 'none';
+                    }
+                } else {
+                    // 如果未登入，執行登入並跳轉
+                    liff.login();
+                }
+            } catch (err) {
+                console.error("LIFF initialization failed", err);
+                document.getElementById('line-displayName').textContent = '初始化失敗';
+                showCustomAlert('發生錯誤 ❌', 'LIFF 初始化失敗，請稍後再試。');
+                loadingOverlay.style.display = 'none';
             }
         }
 
-        function populateVenueOptions() {
-            const venueSelect = document.getElementById(`deliveryVenue`);
-            const fragment = document.createDocumentFragment();
-            
-            Object.keys(venueHallData).forEach(venue => {
-                const option = document.createElement(`option`);
-                option.value = venue;
-                option.textContent = venue;
-                fragment.appendChild(option);
-            });
-            
-            venueSelect.appendChild(fragment);
+        async function getLineProfile() {
+            try {
+                lineProfile = await liff.getProfile();
+                const { displayName, pictureUrl, userId } = lineProfile;
+                document.getElementById('line-avatar').src = pictureUrl;
+                document.getElementById('line-displayName').textContent = displayName;
+                document.getElementById('uid').value = userId;
+            } catch (err) {
+                console.error("Failed to get LINE profile", err);
+                document.getElementById('line-displayName').textContent = '無法取得用戶資訊';
+            }
         }
 
-        function populateCountyOptions() {
-            const countySelect = document.getElementById(`deliveryCounty`);
-            const fragment = document.createDocumentFragment();
-            
-            Object.keys(countyDistrictData).forEach(county => {
-                const option = document.createElement(`option`);
-                option.value = county;
-                option.textContent = county;
-                fragment.appendChild(option);
-            });
-            
-            countySelect.appendChild(fragment);
+        document.addEventListener('DOMContentLoaded', () => {
+            // 頁面載入時先將表單設定為載入狀態
+            setFormLoadingState(true);
+            initializeLiff();
+        });
+
+        async function loadFormData() {
+            try {
+                // *** 確保每個網路請求都使用 await 等待完成 ***
+                const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
+                venueAndHallData = await venueResponse.json();
+                populateVenueSelect();
+
+                const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
+                productData = await productResponse.json();
+                populateProductSelects();
+
+                // 載入完商品資料後，顯示圖片畫廊
+                displayProductGallery();
+
+                const countyDistrictResponse = await fetch(`${WEB_APP_URL}?dataType=countyDistrict`);
+                countyDistrictData = await countyDistrictResponse.json();
+                populateCountySelects();
+
+                setFormLoadingState(false);
+            } catch (error) {
+                console.error("Failed to load form data:", error);
+                showCustomAlert("載入資料失敗 😥", "無法載入訂購表單資料，請稍後再試。");
+                setFormLoadingState(false);
+            }
         }
 
-        function populateProductCheckboxes() {
-            const container = document.getElementById(`productCheckboxes`);
-            const fragment = document.createDocumentFragment();
-            
-            productsData.forEach(product => {
-                const label = document.createElement(`label`);
-                const checkbox = document.createElement(`input`);
-                checkbox.type = `checkbox`;
-                checkbox.className = `product-checkbox`;
-                checkbox.dataset.productName = product.name;
-                checkbox.dataset.productPrice = product.price;
-                
-                label.appendChild(checkbox);
-                label.appendChild(document.createTextNode(`${product.name} (NT$ ${product.price})`));
-                fragment.appendChild(label);
-            });
-            
-            container.appendChild(fragment);
-        }
+        // 函式：用於顯示花籃和蝴蝶蘭的樣式圖片
+        function displayProductGallery() {
+            const galleryElement = document.getElementById('product-gallery');
+            if (!galleryElement) return;
 
-        function populateBasketGallery() {
-            const gallery = document.getElementById(`basketGallery`);
-            const fragment = document.createDocumentFragment();
-            
-            const basketStyles = [
-                { id: `style1`, src: `https://drive.google.com/thumbnail?id=1-0kLHZhXvQJQo3rYVJK_Qj1oZNLGBfHB&sz=w400`, name: `樣式一` },
-                { id: `style2`, src: `https://drive.google.com/thumbnail?id=1-1bFxWvYxVJQJQJQJQJQJQJQJQJQJQJQ&sz=w400`, name: `樣式二` },
-                { id: `style3`, src: `https://drive.google.com/thumbnail?id=1-2cGxYyZwKRQKQKQKQKQKQKQKQKQKQKQ&sz=w400`, name: `樣式三` }
-            ];
-            
-            basketStyles.forEach(style => {
-                const item = document.createElement(`div`);
-                item.className = `gallery-item`;
-                item.dataset.styleId = style.id;
-                
-                const img = document.createElement(`img`);
-                img.src = style.src;
-                img.alt = style.name;
-                img.loading = `lazy`;
-                
-                item.appendChild(img);
-                fragment.appendChild(item);
-            });
-            
-            gallery.appendChild(fragment);
-        }
+            galleryElement.innerHTML = ''; // 清空載入中訊息
 
-        function setupEventListeners() {
-            document.getElementById(`deliveryVenue`).addEventListener(`change`, handleVenueChange);
-            document.getElementById(`deliveryCounty`).addEventListener(`change`, handleCountyChange);
-            
-            document.querySelectorAll(`input[name="receiptOption"]`).forEach(radio => {
-                radio.addEventListener(`change`, handleReceiptOptionChange);
-            });
-            
-            document.getElementById(`productCheckboxes`).addEventListener(`change`, (e) => {
-                if (e.target.classList.contains(`product-checkbox`)) {
-                    handleProductChange(e.target);
+            const categoriesToShow = ['花籃', '蘭花']; // 蘭花即為蝴蝶蘭
+
+            categoriesToShow.forEach(category => {
+                if (productData && productData[category]) {
+                    const styles = productData[category];
+                    for (const styleName in styles) {
+                        const styleData = styles[styleName];
+                        if (styleData.photoUrl) {
+                            const priceText = styleData.price ? `$${styleData.price}` : '價格未定';
+                            const item = document.createElement('div');
+                            item.className = 'gallery-item';
+                            item.innerHTML = `
+                                                <img src="${styleData.photoUrl}" alt="${category} - ${styleName}" onclick="alert('樣式名稱: ${styleName}\\n價格: ${styleData.price}')">
+                                                <p>${category}: ${styleName} (${priceText})</p>
+                                            `;
+                            galleryElement.appendChild(item);
+                        }
+                    }
                 }
             });
-            
-            document.getElementById(`basketGallery`).addEventListener(`click`, (e) => {
-                const item = e.target.closest(`.gallery-item`);
-                if (item) handleBasketStyleSelection(item);
-            });
-            
-            DOM.orderForm.addEventListener(`submit`, handleFormSubmit);
-            
-            document.getElementById(`closeConfirmModal`).addEventListener(`click`, closeConfirmModal);
-            document.getElementById(`cancelSubmit`).addEventListener(`click`, closeConfirmModal);
-            document.getElementById(`confirmSubmit`).addEventListener(`click`, submitOrder);
-            
-            document.getElementById(`closeMessageModal`).addEventListener(`click`, closeMessageModal);
-            document.getElementById(`closeMessageButton`).addEventListener(`click`, closeMessageModal);
+
+            if (galleryElement.innerHTML === '') {
+                galleryElement.innerHTML = '<div style="text-align: center; grid-column: 1 / -1; color: #dc3545;">目前無花籃或蝴蝶蘭樣式資料。</div>';
+            }
         }
 
-        function handleVenueChange(e) {
-            const selectedVenue = e.target.value;
-            const hallContainer = document.getElementById(`hallContainer`);
-            const hallSelect = document.getElementById(`deliveryHall`);
-            
-            hallSelect.innerHTML = `<option value="">請選擇廳別</option>`;
-            
-            if (selectedVenue && venueHallData[selectedVenue]) {
-                const fragment = document.createDocumentFragment();
-                venueHallData[selectedVenue].forEach(hall => {
-                    const option = document.createElement(`option`);
+        function setFormLoadingState(isLoading) {
+            const selectElements = document.querySelectorAll('select');
+            selectElements.forEach(select => {
+                if (isLoading) {
+                    select.disabled = true;
+                    select.classList.add('loading-select');
+                    if (select.id === 'funeralVenue') {
+                        select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
+                    } else if (select.id === 'invoiceCounty' || select.id === 'receiptCounty') {
+                        select.innerHTML = '<option value="" disabled selected>資料下載中...</option>';
+                    } else if (select.id === 'invoiceDistrict' || select.id === 'receiptDistrict') {
+                        select.innerHTML = '<option value="" disabled selected>請先選擇縣市</option>';
+                    } else {
+                        select.innerHTML = '<option value="" disabled selected>請先選擇場館</option>';
+                    }
+                } else {
+                    select.disabled = false;
+                    select.classList.remove('loading-select');
+                }
+            });
+        }
+
+        function populateVenueSelect() {
+            const venueSelect = document.getElementById('funeralVenue');
+            const hallSelect = document.getElementById('hallName');
+            venueSelect.innerHTML = '<option value="" disabled selected>請選擇場館</option>';
+            if (venueAndHallData) {
+                for (const venue in venueAndHallData) {
+                    const option = document.createElement('option');
+                    option.value = venue;
+                    option.textContent = venue;
+                    venueSelect.appendChild(option);
+                }
+            }
+            hallSelect.innerHTML = '<option value="" disabled selected>請選擇廳別</option>';
+        }
+
+        function updateHallSelect() {
+            const venueSelect = document.getElementById('funeralVenue');
+            const hallSelect = document.getElementById('hallName');
+            const selectedVenue = venueSelect.value;
+            hallSelect.innerHTML = '<option value="" disabled selected>請選擇廳別</option>';
+            if (selectedVenue && venueAndHallData[selectedVenue]) {
+                const halls = venueAndHallData[selectedVenue];
+                halls.forEach(hall => {
+                    const option = document.createElement('option');
                     option.value = hall;
                     option.textContent = hall;
-                    fragment.appendChild(option);
+                    hallSelect.appendChild(option);
                 });
-                hallSelect.appendChild(fragment);
-                hallContainer.style.display = `block`;
-            } else {
-                hallContainer.style.display = `none`;
             }
         }
 
-        function handleCountyChange(e) {
-            const selectedCounty = e.target.value;
-            const districtSelect = document.getElementById(`deliveryDistrict`);
-            
-            districtSelect.innerHTML = `<option value="">請選擇鄉鎮市區</option>`;
-            
+        function populateCountySelects() {
+            const invoiceCountySelect = document.getElementById('invoiceCounty');
+            const receiptCountySelect = document.getElementById('receiptCounty');
+
+            invoiceCountySelect.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
+            receiptCountySelect.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
+            if (countyDistrictData) {
+                for (const county in countyDistrictData) {
+                    const optionInvoice = document.createElement('option');
+                    optionInvoice.value = county;
+                    optionInvoice.textContent = county;
+                    invoiceCountySelect.appendChild(optionInvoice);
+
+                    const optionReceipt = document.createElement('option');
+                    optionReceipt.value = county;
+                    optionReceipt.textContent = county;
+                    receiptCountySelect.appendChild(optionReceipt);
+                }
+            }
+        }
+
+        function updateDistrictSelect(type) {
+            const countySelect = document.getElementById(`${type}County`);
+            const districtSelect = document.getElementById(`${type}District`);
+            const selectedCounty = countySelect.value;
+            districtSelect.innerHTML = '<option value="" disabled selected>請選擇鄉鎮市區</option>';
             if (selectedCounty && countyDistrictData[selectedCounty]) {
-                const fragment = document.createDocumentFragment();
-                countyDistrictData[selectedCounty].forEach(district => {
-                    const option = document.createElement(`option`);
+                const districts = countyDistrictData[selectedCounty];
+                districts.forEach(district => {
+                    const option = document.createElement('option');
                     option.value = district;
                     option.textContent = district;
-                    fragment.appendChild(option);
+                    districtSelect.appendChild(option);
                 });
-                districtSelect.appendChild(fragment);
             }
         }
 
-        function handleReceiptOptionChange(e) {
-            const receiptDetails = document.getElementById(`receiptDetails`);
-            const invoiceDetails = document.getElementById(`invoiceDetails`);
-            
-            receiptDetails.style.display = `none`;
-            invoiceDetails.style.display = `none`;
-            
-            if (e.target.value === `收據`) {
-                receiptDetails.style.display = `block`;
-            } else if (e.target.value === `發票`) {
-                invoiceDetails.style.display = `block`;
-            }
-        }
-
-        function handleProductChange(checkbox) {
-            const productName = checkbox.dataset.productName;
-            const detailsDiv = document.querySelector(`[data-product="${productName}"]`);
-            
-            if (checkbox.checked) {
-                if (!detailsDiv) {
-                    createProductDetails(productName, checkbox.dataset.productPrice);
+        function populateProductSelects() {
+            const products = {
+                'flowerBasket': '花籃',
+                'wreath': '蘭花',
+                'fruitBasket': '水果籃'
+            };
+            for (const key in products) {
+                const category = products[key];
+                const selectElement = document.getElementById(`${key}Style`);
+                selectElement.innerHTML = '<option value="" disabled selected>請選擇樣式</option>';
+                if (productData && productData[category]) {
+                    const styles = Object.keys(productData[category]);
+                    styles.forEach(style => {
+                        const option = document.createElement('option');
+                        option.value = style;
+                        option.textContent = style;
+                        selectElement.appendChild(option);
+                    });
                 }
+            }
+        }
+
+        function updatePrice(productType) {
+            const styleSelect = document.getElementById(`${productType}Style`);
+            const priceInput = document.getElementById(`${productType}Price`);
+            const imageElement = document.getElementById(`${productType}Image`);
+            const selectedStyle = styleSelect.value;
+            let category;
+            if (productType === 'flowerBasket') category = '花籃';
+            else if (productType === 'wreath') category = '蘭花';
+            else if (productType === 'fruitBasket') category = '水果籃';
+            if (selectedStyle && productData[category] && productData[category][selectedStyle]) {
+                const data = productData[category][selectedStyle];
+                priceInput.value = data.price;
+                imageElement.src = data.photoUrl;
+                imageElement.style.display = 'block';
             } else {
-                if (detailsDiv) {
-                    detailsDiv.remove();
-                }
+                priceInput.value = 0;
+                imageElement.src = '';
+                imageElement.style.display = 'none';
             }
-            
             calculateTotal();
         }
 
-        function createProductDetails(productName, productPrice) {
-            const container = document.getElementById(`productCheckboxes`).parentElement;
-            const detailsDiv = document.createElement(`div`);
-            detailsDiv.className = `product-details active`;
-            detailsDiv.dataset.product = productName;
-            
-            detailsDiv.innerHTML = `
-                <h3>${productName} - 詳細資訊</h3>
-                <div class="form-row">
-                    <div>
-                        <label>數量</label>
-                        <input type="number" class="product-quantity" data-product="${productName}" min="1" value="1">
-                    </div>
-                    <div>
-                        <label>單價</label>
-                        <input type="text" class="product-price price-box" value="NT$ ${productPrice}" readonly>
-                    </div>
-                    <div>
-                        <label>小計</label>
-                        <input type="text" class="product-subtotal price-box" data-product="${productName}" value="NT$ ${productPrice}" readonly>
-                    </div>
-                </div>
-            `;
-            
-            container.appendChild(detailsDiv);
-            
-            detailsDiv.querySelector(`.product-quantity`).addEventListener(`input`, calculateTotal);
-        }
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="productType"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (event) => {
+                const productType = event.target.value;
+                const detailsElement = document.getElementById(`${productType}Details`);
+                const imageElement = document.getElementById(`${productType}Image`);
+                if (event.target.checked) {
+                    detailsElement.classList.add('active');
+                } else {
+                    detailsElement.classList.remove('active');
+                    document.getElementById(`${productType}Style`).selectedIndex = 0;
+                    document.getElementById(`${productType}Price`).value = 0;
+                    document.getElementById(`${productType}Qty`).value = 0;
+                    imageElement.src = '';
+                    imageElement.style.display = 'none';
+                }
+                calculateTotal();
+            });
+        });
+
+        const receiptRadios = document.querySelectorAll('input[name="receiptType"]');
+        const receiptDetails = document.getElementById('receipt-details');
+        const invoiceDetails = document.getElementById('invoice-details');
+
+        receiptRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.value === 'receipt') {
+                    receiptDetails.style.display = 'block';
+                    invoiceDetails.style.display = 'none';
+                    // 當選擇收據時，清空發票欄位
+                    document.getElementById('invoiceTitle').value = '';
+                    document.getElementById('invoiceTaxId').value = '';
+                    document.getElementById('invoiceCounty').value = '';
+                    document.getElementById('invoiceDistrict').value = '';
+                    document.getElementById('invoiceAddress').value = '';
+                    document.getElementById('invoicePhone').value = '';
+                } else if (radio.value === 'invoice') {
+                    receiptDetails.style.display = 'none';
+                    invoiceDetails.style.display = 'block';
+                    // 當選擇發票時，清空收據欄位
+                    document.getElementById('receiptRecipient').value = '';
+                    document.getElementById('receiptPhone').value = '';
+                    document.getElementById('receiptCounty').value = '';
+                    document.getElementById('receiptDistrict').value = '';
+                    document.getElementById('receiptAddress').value = '';
+                } else { // 處理 '不需要' 選項
+                    receiptDetails.style.display = 'none';
+                    invoiceDetails.style.display = 'none';
+                    // 清空所有相關欄位
+                    document.getElementById('invoiceTitle').value = '';
+                    document.getElementById('invoiceTaxId').value = '';
+                    document.getElementById('invoiceCounty').value = '';
+                    document.getElementById('invoiceDistrict').value = '';
+                    document.getElementById('invoiceAddress').value = '';
+                    document.getElementById('invoicePhone').value = '';
+                    document.getElementById('receiptRecipient').value = '';
+                    document.getElementById('receiptPhone').value = '';
+                    document.getElementById('receiptCounty').value = '';
+                    document.getElementById('receiptDistrict').value = '';
+                    document.getElementById('receiptAddress').value = '';
+                }
+                calculateTotal();
+            });
+        });
+        const companyArrangementCheckbox = document.getElementById('checkboxCompanyArrangement');
+        const dedicationInput = document.getElementById('dedication');
+
+        companyArrangementCheckbox.addEventListener('change', (event) => {
+            if (event.target.checked) {
+                dedicationInput.value = '公司安排';
+                dedicationInput.readOnly = true;
+                dedicationInput.style.backgroundColor = '#e9ecef'; // 新增：將背景變為灰色
+            } else {
+                dedicationInput.value = '';
+                dedicationInput.readOnly = false;
+                dedicationInput.style.backgroundColor = '#fff'; // 新增：恢復背景為白色
+            }
+        });
+
+        // 新增：花籃輓詞的公司安排功能
+        document.getElementById('checkboxFlowerBasketEulogy').addEventListener('change', (event) => {
+            const eulogyInput = document.getElementById('flowerBasketEulogy');
+            if (event.target.checked) {
+                eulogyInput.value = '公司安排';
+                eulogyInput.readOnly = true;
+                eulogyInput.style.backgroundColor = '#e9ecef';
+            } else {
+                eulogyInput.value = '';
+                eulogyInput.readOnly = false;
+                eulogyInput.style.backgroundColor = '#fff';
+            }
+        });
+
+        // 新增：蝴蝶蘭輓詞的公司安排功能
+        document.getElementById('checkboxWreathEulogy').addEventListener('change', (event) => {
+            const eulogyInput = document.getElementById('wreathEulogy');
+            if (event.target.checked) {
+                eulogyInput.value = '公司安排';
+                eulogyInput.readOnly = true;
+                eulogyInput.style.backgroundColor = '#e9ecef';
+            } else {
+                eulogyInput.value = '';
+                eulogyInput.readOnly = false;
+                eulogyInput.style.backgroundColor = '#fff';
+            }
+        });
 
         function calculateTotal() {
             let total = 0;
-            
-            document.querySelectorAll(`.product-checkbox:checked`).forEach(checkbox => {
-                const productName = checkbox.dataset.productName;
-                const price = parseFloat(checkbox.dataset.productPrice);
-                const quantityInput = document.querySelector(`.product-quantity[data-product="${productName}"]`);
-                const quantity = parseInt(quantityInput?.value || 1);
-                const subtotal = price * quantity;
-                
-                const subtotalInput = document.querySelector(`.product-subtotal[data-product="${productName}"]`);
-                if (subtotalInput) {
-                    subtotalInput.value = `NT$ ${subtotal}`;
-                }
-                
-                total += subtotal;
+            const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+            productTypes.forEach(type => {
+                const qty = parseInt(document.getElementById(`${type}Qty`).value) || 0;
+                const price = parseFloat(document.getElementById(`${type}Price`).value) || 0;
+                total += qty * price;
             });
-            
-            document.getElementById(`totalAmount`).value = `NT$ ${total}`;
-        }
-
-        function handleBasketStyleSelection(item) {
-            document.querySelectorAll(`.gallery-item`).forEach(el => el.classList.remove(`selected`));
-            item.classList.add(`selected`);
-            document.getElementById(`selectedBasketStyle`).value = item.dataset.styleId;
-        }
-
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            
-            if (!validateForm()) {
-                showMessage(`表單驗證失敗`, `請確認所有必填欄位都已正確填寫。`);
-                return;
+            const selectedReceiptType = document.querySelector('input[name="receiptType"]:checked');
+            if (selectedReceiptType && selectedReceiptType.value === 'invoice') {
+                total = total * 1.05;
             }
-            
-            const formData = collectFormData();
-            const confirmMessage = generateConfirmMessage(formData);
-            
-            document.getElementById(`confirmModalMessage`).textContent = confirmMessage;
-            document.getElementById(`confirmModal`).classList.add(`show`);
+
+            document.getElementById('totalAmount').value = Math.round(total);
         }
 
-        function validateForm() {
+        function showCustomAlert(title, message, callback = null) {
+            const modal = document.getElementById('customAlert');
+            const titleElement = document.getElementById('modalTitle');
+            const messageElement = document.getElementById('modalMessage');
+            const okBtn = document.getElementById('modalOkBtn');
+            const closeBtn = document.querySelector('.close-btn');
+
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+            modal.style.display = 'flex';
+
+            const closeModal = () => {
+                modal.style.display = 'none';
+                if (callback) {
+                    callback();
+                }
+            };
+            okBtn.onclick = closeModal;
+            closeBtn.onclick = closeModal;
+            window.onclick = (event) => {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            };
+        }
+
+        function setSubmitButtonState(isSubmitting) {
+            const submitBtn = document.querySelector('.submit-button');
+            if (isSubmitting) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '訂單處理中...';
+                submitBtn.style.backgroundColor = '#6c757d';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '送出訂單';
+                submitBtn.style.backgroundColor = '#28a745';
+            }
+        }
+
+        function generateOrderNumber() {
+            const now = new Date();
+            const year = String(now.getFullYear()).slice(-2);
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const random = String(Math.floor(Math.random() * 900) + 100);
+            return `AJ${year}${month}${day}-${hours}${minutes}${seconds}-${random}`;
+        }
+
+        document.getElementById('aj_index').addEventListener('submit', async function (event) {
+            event.preventDefault();
             let isValid = true;
-            const requiredFields = DOM.orderForm.querySelectorAll(`[required]`);
-            
-            requiredFields.forEach(field => {
-                field.classList.remove(`error`);
-                if (!field.value.trim()) {
-                    field.classList.add(`error`);
+            const requiredFields = ['funeralDate', 'funeralVenue', 'hallName', 'deceasedName', 'lastFiveDigits'];
+            const errorMessages = [];
+            const hasSelectedProduct = document.querySelectorAll('input[name="productType"]:checked').length > 0;
+            const selectedReceiptType = document.querySelector('input[name="receiptType"]:checked');
+
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+
+            requiredFields.forEach(id => {
+                const input = document.getElementById(id);
+                if (!input.value) {
+                    input.classList.add('error');
                     isValid = false;
                 }
             });
-            
-            const checkedProducts = document.querySelectorAll(`.product-checkbox:checked`);
-            if (checkedProducts.length === 0) {
-                showMessage(`未選擇商品`, `請至少選擇一項商品。`);
+
+            // 檢查落款欄位，如果沒有勾選公司安排，就必須填寫
+            if (!document.getElementById('checkboxCompanyArrangement').checked && !document.getElementById('dedication').value) {
+                document.getElementById('dedication').classList.add('error');
                 isValid = false;
+                errorMessages.push('請填寫落款或勾選「公司安排」。');
             }
-            
-            return isValid;
-        }
 
-        function collectFormData() {
-            const formData = {
-                ordererName: document.getElementById(`ordererName`).value,
-                ordererPhone: document.getElementById(`ordererPhone`).value,
-                ordererAddress: document.getElementById(`ordererAddress`).value,
-                recipientName: document.getElementById(`recipientName`).value,
-                recipientPhone: document.getElementById(`recipientPhone`).value,
-                deliveryDate: document.getElementById(`deliveryDate`).value,
-                deliveryTime: document.getElementById(`deliveryTime`).value,
-                deliveryVenue: document.getElementById(`deliveryVenue`).value,
-                deliveryHall: document.getElementById(`deliveryHall`).value,
-                deliveryCounty: document.getElementById(`deliveryCounty`).value,
-                deliveryDistrict: document.getElementById(`deliveryDistrict`).value,
-                deliveryAddress: document.getElementById(`deliveryAddress`).value,
-                products: [],
-                basketStyle: document.getElementById(`selectedBasketStyle`).value,
-                elegiacCouplet: {
-                    top: document.getElementById(`elegiacCoupletTop`).value,
-                    bottom: document.getElementById(`elegiacCoupletBottom`).value,
-                    horizontal: document.getElementById(`elegiacCoupletHorizontal`).value,
-                    signature: document.getElementById(`elegiacCoupletSignature`).value
-                },
-                receiptOption: document.querySelector(`input[name="receiptOption"]:checked`).value,
-                receiptTitle: document.getElementById(`receiptTitle`).value,
-                invoiceTitle: document.getElementById(`invoiceTitle`).value,
-                invoiceTaxId: document.getElementById(`invoiceTaxId`).value,
-                companyArrangement: document.getElementById(`companyArrangement`).checked,
-                notes: document.getElementById(`notes`).value,
-                totalAmount: document.getElementById(`totalAmount`).value,
-                lineUserId: window.lineUserId || ``,
-                lineDisplayName: window.lineDisplayName || ``
-            };
-            
-            document.querySelectorAll(`.product-checkbox:checked`).forEach(checkbox => {
-                const productName = checkbox.dataset.productName;
-                const quantity = document.querySelector(`.product-quantity[data-product="${productName}"]`).value;
-                const subtotal = document.querySelector(`.product-subtotal[data-product="${productName}"]`).value;
-                
-                formData.products.push({
-                    name: productName,
-                    quantity: quantity,
-                    subtotal: subtotal
+            if (!hasSelectedProduct) {
+                errorMessages.push('請至少勾選一項商品類別。');
+                isValid = false;
+            } else {
+                const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+                productTypes.forEach(type => {
+                    const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
+                    if (checkbox.checked) {
+                        const styleSelect = document.getElementById(`${type}Style`);
+                        const qtyInput = document.getElementById(`${type}Qty`);
+                        // 檢查輓詞欄位
+                        const eulogyInput = document.getElementById(`${type}Eulogy`);
+                        const eulogyCompanyCheckbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}Eulogy`);
+
+                        if (!styleSelect.value) {
+                            styleSelect.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`請選擇「${styleSelect.previousElementSibling.textContent}」。`);
+                        }
+                        if (parseInt(qtyInput.value) <= 0 || qtyInput.value === "") {
+                            qtyInput.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`「${qtyInput.previousElementSibling.textContent}」必須大於0。`);
+                        }
+                        if (type !== 'fruitBasket') { // 只對花籃和蝴蝶蘭檢查輓詞
+                            if (!eulogyCompanyCheckbox.checked && !eulogyInput.value) {
+                                eulogyInput.classList.add('error');
+                                isValid = false;
+                                errorMessages.push(`請填寫「${eulogyInput.previousElementSibling.textContent}」或勾選「公司安排」。`);
+                            }
+                        }
+                    }
                 });
+            }
+
+            if (!selectedReceiptType) {
+                isValid = false;
+                errorMessages.push('請選擇收據或發票資訊。');
+            } else {
+                if (selectedReceiptType.value === 'receipt') {
+                    const receiptFields = ['receiptRecipient', 'receiptPhone', 'receiptCounty', 'receiptDistrict', 'receiptAddress'];
+                    receiptFields.forEach(id => {
+                        const input = document.getElementById(id);
+                        if (!input.value) {
+                            input.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`請填寫「收據」資訊中的「${input.previousElementSibling.textContent.replace('：', '')}」。`);
+                        }
+                    });
+                } else if (selectedReceiptType.value === 'invoice') {
+                    const invoiceFields = ['invoiceTitle', 'invoiceTaxId', 'invoiceCounty', 'invoiceDistrict', 'invoiceAddress', 'invoicePhone'];
+                    invoiceFields.forEach(id => {
+                        const input = document.getElementById(id);
+                        if (!input.value) {
+                            input.classList.add('error');
+                            isValid = false;
+                            errorMessages.push(`請填寫「發票」資訊中的「${input.previousElementSibling.textContent.replace('：', '')}」。`);
+                        }
+                    });
+                }
+            }
+
+            const totalAmount = parseFloat(document.getElementById('totalAmount').value);
+            if (totalAmount === 0 && hasSelectedProduct) {
+                isValid = false;
+                errorMessages.push('合計金額為0，請確認您的選擇。');
+            }
+
+            const lastFiveDigitsInput = document.getElementById('lastFiveDigits');
+            if (lastFiveDigitsInput.value.trim().length !== 5) {
+                lastFiveDigitsInput.classList.add('error');
+                isValid = false;
+                errorMessages.push('轉帳後五碼必須為五位數字。');
+            }
+
+            if (!isValid) {
+                showCustomAlert('訂單填寫有誤 ⚠️', [...new Set(errorMessages)].join('\n'));
+                return;
+            }
+
+            setSubmitButtonState(true);
+
+            const formData = new FormData(this);
+            const orderData = {};
+            formData.forEach((value, key) => {
+                if (value) {
+                    orderData[key] = value;
+                }
             });
-            
-            return formData;
-        }
+            orderData.orderNumber = generateOrderNumber();
 
-        function generateConfirmMessage(data) {
-            return `訂購人: ${data.ordererName}
-收件人: ${data.recipientName}
-送達日期: ${data.deliveryDate} ${data.deliveryTime}
-送達地點: ${data.deliveryVenue} ${data.deliveryHall}
-地址: ${data.deliveryCounty}${data.deliveryDistrict}${data.deliveryAddress}
-商品: ${data.products.map(p => `${p.name} x${p.quantity}`).join(`, `)}
-總金額: ${data.totalAmount}
+            orderData.lineProfile = {
+                uid: lineProfile.userId,
+                displayName: lineProfile.displayName
+            };
+            orderData.products = {};
+            const productTypes = ['flowerBasket', 'wreath', 'fruitBasket'];
+            productTypes.forEach(type => {
+                const checkbox = document.getElementById(`checkbox${type.charAt(0).toUpperCase() + type.slice(1)}`);
+                if (checkbox.checked) {
+                    const style = document.getElementById(`${type}Style`).value;
+                    const qty = document.getElementById(`${type}Qty`).value;
+                    const price = document.getElementById(`${type}Price`).value;
+                    const eulogy = type !== 'fruitBasket' ? document.getElementById(`${type}Eulogy`).value : undefined;
+                    if (style && qty > 0) {
+                        const categoryMap = { 'flowerBasket': '花籃', 'wreath': '蘭花', 'fruitBasket': '水果籃' };
+                        const category = categoryMap[type];
+                        const photoUrl = productData[category]?.[style]?.photoUrl || '';
+                        orderData.products[type] = {
+                            style: style,
+                            qty: qty,
+                            price: price,
+                            photoUrl: photoUrl,
+                            eulogy: eulogy
+                        };
+                    }
+                }
+            });
+            if (selectedReceiptType) {
+                if (selectedReceiptType.value === 'receipt') {
+                    orderData.receiptInfo = {
+                        type: 'receipt',
+                        recipient: document.getElementById('receiptRecipient').value,
+                        phone: document.getElementById('receiptPhone').value,
+                        county: document.getElementById('receiptCounty').value,
+                        district: document.getElementById('receiptDistrict').value,
+                        address: document.getElementById('receiptAddress').value
+                    };
+                } else if (selectedReceiptType.value === 'invoice') {
+                    orderData.receiptInfo = {
+                        type: 'invoice',
+                        title: document.getElementById('invoiceTitle').value,
+                        taxId: document.getElementById('invoiceTaxId').value,
+                        county: document.getElementById('invoiceCounty').value,
+                        district: document.getElementById('invoiceDistrict').value,
+                        address: document.getElementById('invoiceAddress').value,
+                        phone: document.getElementById('invoicePhone').value
+                    };
+                } else if (selectedReceiptType.value === 'noNeed') {
+                    orderData.receiptInfo = {
+                        type: 'noNeed'
+                    };
+                }
+            }
 
-確認要送出此訂單嗎?`;
-        }
-
-        async function submitOrder() {
-            closeConfirmModal();
-            showMessage(`處理中`, `正在提交訂單,請稍候...`);
-            
-            const formData = collectFormData();
-            
+            orderData.totalAmount = document.getElementById('totalAmount').value;
             try {
-                const response = await fetchWithRetry(CONFIG.webhookUrl, {
-                    method: `POST`,
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
                     headers: {
-                        'Content-Type': `application/json`
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify(orderData),
                 });
-                
-                if (response.success) {
-                    showMessage(`訂單提交成功`, `您的訂單已成功提交!\n我們會盡快處理您的訂單。`);
-                    DOM.orderForm.reset();
-                    calculateTotal();
+                if (response.ok) {
+                    showCustomAlert('訂單送出成功 🎉', '轉帳完成請主動與官方LINE連繫，謝謝。', () => {
+                        liff.closeWindow();
+                    });
                 } else {
-                    throw new Error(response.message || `提交失敗`);
+                    const errorText = await response.text();
+                    throw new Error(`伺服器回應錯誤: ${response.status} - ${errorText}`);
                 }
             } catch (error) {
-                console.error(`提交訂單失敗:`, error);
-                showMessage(`提交失敗`, `訂單提交失敗,請稍後再試。\n\n錯誤訊息: ${error.message}`);
+                console.error('送出訂單時發生錯誤:', error);
+                showCustomAlert('送出失敗 😥', '傳送訂單時發生問題，請稍後再試。');
+            } finally {
+                setSubmitButtonState(false);
             }
-        }
-
-        function closeConfirmModal() {
-            document.getElementById(`confirmModal`).classList.remove(`show`);
-        }
-
-        function closeMessageModal() {
-            document.getElementById(`messageModal`).classList.remove(`show`);
-        }
-
-        function showMessage(title, message) {
-            document.getElementById(`messageModalTitle`).textContent = title;
-            document.getElementById(`messageModalContent`).textContent = message;
-            document.getElementById(`messageModal`).classList.add(`show`);
-        }
-
-        async function initializeLIFF() {
-            try {
-                progressManager.update(0);
-                await liff.init({ liffId: CONFIG.liffId });
-                
-                progressManager.update(1);
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return false;
-                }
-                
-                progressManager.update(2);
-                const friendship = await liff.getFriendship();
-                if (!friendship.friendFlag) {
-                    showMessage(`請加入好友`, `請先加入我們的 LINE 官方帳號:\n${CONFIG.lineOAId}`);
-                    return false;
-                }
-                
-                const profile = await liff.getProfile();
-                window.lineUserId = profile.userId;
-                window.lineDisplayName = profile.displayName;
-                
-                document.getElementById(`lineProfilePicture`).src = profile.pictureUrl || ``;
-                document.getElementById(`lineDisplayName`).textContent = profile.displayName;
-                document.getElementById(`lineUserId`).textContent = profile.userId;
-                DOM.lineProfileSection.style.display = `block`;
-                
-                return true;
-            } catch (error) {
-                console.error(`LIFF 初始化失敗:`, error);
-                showMessage(`初始化失敗`, `無法初始化 LINE 登入功能,請重新整理頁面再試一次。`);
-                return false;
-            }
-        }
-
-        async function initialize() {
-            DOM.loadingOverlay = document.getElementById(`loading-overlay`);
-            DOM.progressBar = document.getElementById(`progressBar`);
-            DOM.progressText = document.getElementById(`progressText`);
-            DOM.progressPercentage = document.getElementById(`progressPercentage`);
-            DOM.mainContainer = document.getElementById(`mainContainer`);
-            DOM.orderForm = document.getElementById(`orderForm`);
-            DOM.lineProfileSection = document.getElementById(`lineProfileSection`);
-            
-            const liffSuccess = await initializeLIFF();
-            if (!liffSuccess) return;
-            
-            progressManager.update(3);
-            await new Promise(resolve => setTimeout(resolve, 300));
-            
-            progressManager.update(4);
-            await new Promise(resolve => setTimeout(resolve, 300));
-            
-            progressManager.update(5);
-            const dataSuccess = await loadAllData();
-            if (!dataSuccess) return;
-            
-            progressManager.update(6);
-            
-            populateVenueOptions();
-            populateCountyOptions();
-            populateProductCheckboxes();
-            populateBasketGallery();
-            setupEventListeners();
-            
-            progressManager.complete();
-        }
-
-        document.addEventListener(`DOMContentLoaded`, initialize);
+        });
     </script>
-    <script src="https://cdn.kuse.ai/sdk.prd.js"></script>
 </body>
 </html>
