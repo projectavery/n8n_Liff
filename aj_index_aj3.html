@@ -718,9 +718,9 @@
         async function loadFormData() {
             try {
                 // *** 確保每個網路請求都使用 await 等待完成 ***
-                const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
-                venueAndHallData = await venueResponse.json();
-                populateVenueSelect();
+                // const venueResponse = await fetch(`${WEB_APP_URL}?dataType=venueAndHall`);
+                // venueAndHallData = await venueResponse.json();
+                // populateVenueSelect();
 
                 const productResponse = await fetch(`${WEB_APP_URL}?dataType=products`);
                 productData = await productResponse.json();
@@ -729,9 +729,9 @@
                 // 載入完商品資料後，顯示圖片畫廊
                 displayProductGallery();
 
-                const countyDistrictResponse = await fetch(`${WEB_APP_URL}?dataType=countyDistrict`);
-                countyDistrictData = await countyDistrictResponse.json();
-                populateCountySelects();
+                // const countyDistrictResponse = await fetch(`${WEB_APP_URL}?dataType=countyDistrict`);
+                // countyDistrictData = await countyDistrictResponse.json();
+                // populateCountySelects();
 
                 setFormLoadingState(false);
             } catch (error) {
@@ -1279,3 +1279,4 @@
     </script>
 </body>
 </html>
+
